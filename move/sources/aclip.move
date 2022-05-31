@@ -112,25 +112,33 @@ module aclip::RootV1 {
         assert!(exists<RootV1>(addr), Errors::internal(E_TEST_FAILURE));
 
         // Add a link.
-        let url = b"https://google.com";
-        add(&account, url, Vector::empty());
+        let url1 = b"https://google.com";
+        add(&account, url1, Vector::empty());
 
         // Confirm that the link was added.
         let inner = &borrow_global<RootV1>(addr).inner;
         assert!(Vector::length(&inner.links) == 1, Errors::internal(E_TEST_FAILURE));
 
-        // Remove some other random link.
+        // Add another link.
+        let url2 = b"https://yahoo.com";
+        add(&account, url2, Vector::empty());
+
+        // Remove some random link we never added.
         remove(&account, b"fake");
 
         // Confirm that nothing changed.
         let inner = &borrow_global<RootV1>(addr).inner;
-        assert!(Vector::length(&inner.links) == 1, Errors::internal(E_TEST_FAILURE));
+        assert!(Vector::length(&inner.links) == 2, Errors::internal(E_TEST_FAILURE));
 
         // Remove the link we added.
-        remove(&account, url);
+        remove(&account, url1);
 
         // Confirm that it is gone.
         let inner = &borrow_global<RootV1>(addr).inner;
-        assert!(Vector::length(&inner.links) == 0, Errors::internal(E_TEST_FAILURE));
+        assert!(Vector::length(&inner.links) == 1, Errors::internal(E_TEST_FAILURE));
+
+        // Confirm that the other link is still there.
+        let inner = &borrow_global<RootV1>(addr).inner;
+        assert!(Vector::borrow(&inner.links, 0).url == ASCII::string(url2), Errors::internal(E_TEST_FAILURE));
     }
 }
