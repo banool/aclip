@@ -7,7 +7,6 @@ This is done automatically via Github Actions.
 Currently this must be done manually:
 ```
 flutter pub get
-flutter pub run icons_launcher:create
 flutter build ios --release --no-codesign
 cd ios && ./publish.sh
 ```
@@ -23,14 +22,20 @@ pod install
 Make sure you're using an up to date ruby / gem and it is configured first in your PATH. Make sure `pod` is coming from that gem install too. [See here](https://stackoverflow.com/questions/20755044/how-do-i-install-cocoapods). Make sure to use the one with `-n`.
 
 ## Screenshots
-First, make sure you've implemented the fix in https://github.com/flutter/flutter/issues/91668 if the issue is still active. In short, make the following change to `~/homebrew/Caskroom/flutter/2.10.3/flutter/packages/integration_test/ios/Classes/IntegrationTestPlugin.m`
+First, make sure you've implemented the fix in https://github.com/flutter/flutter/issues/91668 if the issue is still active. In short, make the following change to `IntegrationTestPlugin.m`
 ```
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
     [[IntegrationTestPlugin instance] setupChannels:registrar.messenger];
 }
 ```
 
-You may also need to `flutter clean` after this.
+You might find the file at locations like these:
+```
+~/homebrew/Caskroom/flutter/2.10.3/flutter/packages/integration_test/ios/Classes/
+~/.flutter/packages/integration_test/ios/Classes/
+```
+
+You may also need to `flutter clean && flutter pub get` after this.
 
 Then run this:
 ```
@@ -45,14 +50,10 @@ The Apple App Store will expect that you also upload a build for this app versio
 
 For Android, you need to just go to the Google Play Console and do it manually right now.
 
-See my [Stack OVverflow question](https://stackoverflow.com/questions/71699078/how-to-locate-elements-in-ios-ui-test-for-flutter-fastlane-screnshots/71801310#71801310) for more information about this whole setup.
+See my [Stack Overflow question](https://stackoverflow.com/questions/71699078/how-to-locate-elements-in-ios-ui-test-for-flutter-fastlane-screnshots/71801310#71801310) for more information about this whole setup.
 
-## General dev guide
-When first pulling this repo, add this to `.git/hooks/pre-commit`:
+## Icons
+To generate icons, do this:
 ```
-#!/bin/bash
-
-cd frontend
-./bump_version.sh
-git add pubspec.yaml
+flutter pub run icons_launcher:create
 ```

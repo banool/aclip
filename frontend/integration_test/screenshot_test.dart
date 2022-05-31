@@ -1,16 +1,13 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:biboword/redux/middleware.dart';
-import 'package:biboword/stream_manager.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:integration_test/src/channel.dart';
 
-import 'package:biboword/main.dart';
+import 'package:aclip/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // This function handles all the specifics around taking screenshots
@@ -66,12 +63,13 @@ Future<void> takeScreenshot(
       "${screenshotNameInfo.getAndIncrementCounter().toString().padLeft(2, '0')}-"
       "$name";
   await tester.pumpAndSettle();
-  sleep(Duration(milliseconds: 250));
+  sleep(const Duration(milliseconds: 250));
   if (Platform.isAndroid) {
     await takeScreenshotForAndroid(binding, name);
   } else {
     await binding.takeScreenshot(name);
   }
+  // ignore: avoid_print
   print("Took screenshot: $name");
 }
 
@@ -125,11 +123,11 @@ void main() async {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets("takeScreenshots", (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({USER_NAME_KEY: "Bibo"});
+    SharedPreferences.setMockInitialValues({});
 
-    var store = await setup();
+    await setup();
 
-    await tester.pumpWidget(MyApp(store));
+    await tester.pumpWidget(MyApp());
     await tester.pumpAndSettle(Duration(seconds: 5));
 
     var screenshotNameInfo = await ScreenshotNameInfo.buildScreenshotNameInfo();
