@@ -34,6 +34,9 @@ module aclip::RootV1 {
 
         /// Any arbitrary tags the user wants to add.
         tags: vector<ASCII::String>,
+
+        /// If true, the link is considered archived (read).
+        archived: bool,
     }
 
     /// Initialize the list to the caller's account.
@@ -51,7 +54,7 @@ module aclip::RootV1 {
             i = i + 1;
         };
 
-        let link = Link {url: ASCII::string(url_raw), tags: tags};
+        let link = Link {url: ASCII::string(url_raw), tags: tags, archived: false};
 
         add_internal(account, link);
     }
@@ -64,7 +67,7 @@ module aclip::RootV1 {
         Vector::push_back(&mut inner.links, link);
     }
 
-    /// Public wrapper around remove, since you can't use structs nor ascii in external calls.
+    /// Public wrapper around remove.
     public(script) fun remove(account: &signer, url_raw: vector<u8>) acquires RootV1 {
         remove_internal(account, ASCII::string(url_raw));
     }
@@ -98,13 +101,35 @@ module aclip::RootV1 {
         let link = Vector::pop_back(&mut inner.links);
 
         // Destructure it to destroy it.
-        let Link{ url, tags } = link;
-        (url, tags);
+        let Link{ url, tags, archived } = link;
+        (url, tags, archived);
     }
 
+    /// Public wrapper around set_archived.
+    public(script) fun set_archived(account: &signer, url_raw: vector<u8>, archived: bool) acquires RootV1 {
+        set_archived_internal(account, ASCII::string(url_raw), archived);
+    }
+
+    /// Mark an item as archived or not. If there are multiple items in the list
+    /// with the same URL, this will only affect the oldest instance.
+    fun set_archived_internal(account: &signer, url: ASCII::String, archived: bool) acquires RootV1 {
+        let addr = Signer::address_of(account);
+        let inner = &mut borrow_global_mut<RootV1>(addr).inner;
+
+        let i = 0;
+        let len = Vector::length(&inner.links); 
+        while (i < len) {
+            let link = Vector::borrow_mut(&mut inner.links, i);
+            if (link.url == url) {
+                link.archived = archived;
+                break
+            };
+            i = i + 1;
+        };
+    }
 
     #[test(account = @0x123)]
-    public(script) fun test_add_remove(account: signer) acquires RootV1 {
+    public(script) fun test_add_remove_archive(account: signer) acquires RootV1 {
         let addr = Signer::address_of(&account);
 
         // Initialize a list on account.
@@ -130,6 +155,9 @@ module aclip::RootV1 {
         let inner = &borrow_global<RootV1>(addr).inner;
         assert!(Vector::length(&inner.links) == 2, Errors::internal(E_TEST_FAILURE));
 
+        // Mark the second link as archived.
+        set_archived(&account, url2, true);
+
         // Remove the link we added.
         remove(&account, url1);
 
@@ -137,8 +165,9 @@ module aclip::RootV1 {
         let inner = &borrow_global<RootV1>(addr).inner;
         assert!(Vector::length(&inner.links) == 1, Errors::internal(E_TEST_FAILURE));
 
-        // Confirm that the other link is still there.
+        // Confirm that the other link is still there and that it is archived.
         let inner = &borrow_global<RootV1>(addr).inner;
         assert!(Vector::borrow(&inner.links, 0).url == ASCII::string(url2), Errors::internal(E_TEST_FAILURE));
+        assert!(Vector::borrow(&inner.links, 0).archived, Errors::internal(E_TEST_FAILURE));
     }
 }
