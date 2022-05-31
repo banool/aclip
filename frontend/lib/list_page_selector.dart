@@ -26,7 +26,8 @@ class ListPageSelectorState extends State<ListPageSelector> {
           future: listManager.fetchDataFuture,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return buildTopLevelScaffold(context, CircularProgressIndicator(),
+              return buildTopLevelScaffold(
+                  context, Center(child: CircularProgressIndicator()),
                   title: "Setup");
             }
             if (snapshot.hasError) {

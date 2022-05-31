@@ -6,8 +6,8 @@ const String appTitle = "aclip";
 const Color mainColor = Colors.indigo;
 
 // Constants for the move module.
-const String moduleAddress =
-    "c40f1c9b9fdc204cf77f68c9bb7029b0abbe8ad9e5561f7794964076a4fbdcfd";
+HexString moduleAddress = HexString.fromString(
+    "c40f1c9b9fdc204cf77f68c9bb7029b0abbe8ad9e5561f7794964076a4fbdcfd");
 const String moduleName = "RootV1";
 
 // Shared preferences keys.
