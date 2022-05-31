@@ -1,4 +1,4 @@
-import 'package:aclip/list_page.dart';
+import 'package:aclip/list_page_selector.dart';
 import 'package:flutter/material.dart';
 
 import 'constants.dart';
@@ -50,7 +50,7 @@ class PageSelectorController {
           icon: Icon(Icons.list_alt),
           label: "Links",
         ),
-        ListPage()),
+        ListPageSelector()),
     TabInformation(
         BottomNavigationBarItem(
           icon: Icon(Icons.settings),
@@ -108,7 +108,11 @@ Scaffold buildTopLevelScaffold(BuildContext context, Widget body,
   if (title != null) {
     appBar = AppBar(
       leading: leadingAppBarButton,
-      title: Text(title),
+      title: Text(
+        title,
+        style: TextStyle(fontSize: 18),
+      ),
+      toolbarHeight: 50,
       centerTitle: true,
       actions: appBarActions,
     );

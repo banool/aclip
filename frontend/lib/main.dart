@@ -1,8 +1,11 @@
+import 'package:aclip/common.dart';
+import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants.dart';
+import 'list_manager.dart';
 import 'page_selector.dart';
 import 'globals.dart';
 
@@ -11,9 +14,15 @@ Future<void> setup() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load shared preferences. We do this first because the later futures,
-  // such as loadFavourites and the knobs, depend on it being initialized.
+  // Load shared preferences. We do this first because later things we
+  // initialize here depend on its values.
   sharedPreferences = await SharedPreferences.getInstance();
+
+  HexString? privateKey = getPrivateKey();
+  if (privateKey != null) {
+    listManager = ListManager.fromSharedPrefs();
+    listManager.triggerPull();
+  }
 
   packageInfo = await PackageInfo.fromPlatform();
 
@@ -36,6 +45,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: mainColor as MaterialColor,
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: "Raleway",
       ),
       home: const PageSelector(),
     );

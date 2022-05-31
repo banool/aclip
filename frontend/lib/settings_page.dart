@@ -1,3 +1,4 @@
+import 'package:aclip/list_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -34,6 +35,7 @@ class SettingsPageState extends State<SettingsPage> {
                 bool confirmed = await showChangeStringSharedPrefDialog(context,
                     "Aptos FullNode URL", keyAptosNodeUrl, defaultAptosNodeUrl);
                 if (confirmed) {
+                  listManager = ListManager.fromSharedPrefs();
                   setState(() {});
                 }
               }),
@@ -46,6 +48,7 @@ class SettingsPageState extends State<SettingsPage> {
                 bool confirmed = await showChangeStringSharedPrefDialog(
                     context, "Private key", keyPrivateKey, defaultPrivateKey);
                 if (confirmed) {
+                  listManager = ListManager.fromSharedPrefs();
                   setState(() {});
                 }
               }),
@@ -134,7 +137,9 @@ Text getText(String s, {bool larger = false}) {
 
 Future<bool> showChangeStringSharedPrefDialog(
     BuildContext context, String title, String key, String? defaultValue,
-    {String cancelText = "Cancel", String confirmText = "Confirm"}) async {
+    {String cancelText = "Cancel",
+    String confirmText = "Confirm",
+    bool Function(String value)? validateFn}) async {
   bool confirmed = false;
   String currentValue = sharedPreferences.getString(key) ?? defaultValue ?? "";
   TextEditingController textController =
@@ -159,9 +164,15 @@ Future<bool> showChangeStringSharedPrefDialog(
       if (newValue == "") {
         print("Not setting empty string for $key");
       } else {
-        await sharedPreferences.setString(key, newValue);
-        print("Set $key to $newValue");
-        confirmed = true;
+        bool valid = true;
+        if (validateFn != null) {
+          valid = validateFn(newValue);
+        }
+        if (valid) {
+          await sharedPreferences.setString(key, newValue);
+          print("Set $key to $newValue");
+        }
+        confirmed = valid;
       }
       Navigator.of(context).pop();
     },
