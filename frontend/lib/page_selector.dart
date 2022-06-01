@@ -14,7 +14,7 @@ class PageSelector extends StatefulWidget {
 
 class PageSelectorState extends State<PageSelector> {
   late PageSelectorController pageSelectorController;
-  ValueKey childKey = ValueKey("whatever");
+  ValueKey childKey = ValueKey(0);
 
   @override
   void initState() {
@@ -23,10 +23,9 @@ class PageSelectorState extends State<PageSelector> {
   }
 
   void refresh() {
-    print("refreshing: ${listManager.fetchDataFuture}");
     setState(() {
       // This forces the child to rebuild.
-      childKey = ValueKey(listManager.fetchDataFuture.hashCode);
+      childKey = ValueKey(childKey.value + 1);
     });
   }
 

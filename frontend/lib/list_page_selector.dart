@@ -22,8 +22,6 @@ class ListPageSelectorState extends State<ListPageSelector> {
     if (privateKey == null) {
       return RegisterPage();
     } else {
-      print(listManager.fetchDataFuture);
-      print("kljsdflkdskjfl");
       return FutureBuilder(
           future: listManager.fetchDataFuture,
           builder: (BuildContext context, AsyncSnapshot snapshot) {

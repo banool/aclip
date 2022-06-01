@@ -79,11 +79,8 @@ class ListManager {
 
       committed = pendingTransactionResult.committed;
       errorString = pendingTransactionResult.getErrorString();
-    } on DioError catch (e) {
-      errorString =
-          "Type: ${e.type}\nMessage: ${e.message}\nResponse: ${e.response}\nError: ${e.error}";
     } catch (e) {
-      errorString = "$e";
+      errorString = getErrorString(e);
     }
 
     return TransactionResult(
@@ -109,10 +106,10 @@ class ListManager {
       links = await fetchData();
       print("New links: $links");
     } on DioError catch (e) {
-      print(
-          "Type: ${e.type}\nMessage: ${e.message}\nResponse: ${e.response}\nError: ${e.error}");
+      print(getErrorString(e));
+      rethrow;
     } catch (e) {
-      print(e);
+      rethrow;
     }
   }
 

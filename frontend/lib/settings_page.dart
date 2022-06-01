@@ -161,8 +161,6 @@ Future<bool> showChangeStringSharedPrefDialog(
       if (newValue == "" && !allowEmptyString) {
         print("Not setting empty string for $key");
       } else {
-        print("wtf");
-        print(validateFn);
         bool valid = true;
         if (validateFn != null) {
           valid = validateFn(context, newValue);
@@ -211,7 +209,6 @@ bool validatePrivateKey(BuildContext context, String value) {
     print("Private key was valid");
     return true;
   } catch (e) {
-    print("HEY lkjsdflkdsfkl");
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text("Private key was invalid: $e"),
     ));

@@ -26,9 +26,21 @@ class InitializePageState extends State<InitializePage> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Successfully initialized list!"),
         ));
+        InheritedPageSelectorController.of(context)
+            .pageSelectorController
+            .refreshParent();
       } catch (e) {
         print("Pulling after initialize failed: $e");
+        showErrorInDialog(context, e);
+        setState(() {
+          onPressedFuture = null;
+        });
       }
+    } else {
+      await myShowDialog(context, TransactionResultWidget(result));
+      setState(() {
+        onPressedFuture = null;
+      });
     }
     return result;
   }
@@ -53,26 +65,16 @@ class InitializePageState extends State<InitializePage> {
       lower = FutureBuilder(
           future: onPressedFuture,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return Row(
-                children: const [
-                  CircularProgressIndicator(),
-                  Padding(padding: EdgeInsets.only(left: 20)),
-                  Text(
-                    "Initializing list...",
-                    style: TextStyle(fontSize: fontSize),
-                  ),
-                ],
-              );
-            }
-            if (snapshot.hasError) {
-              return Text("Unexpected error: ${snapshot.error}");
-            }
-            TransactionResult transactionResult = snapshot.data!;
-            if (transactionResult.success) {
-              throw "Unexpected success state on this page";
-            }
-            return TransactionResultWidget(transactionResult);
+            return Row(
+              children: const [
+                CircularProgressIndicator(),
+                Padding(padding: EdgeInsets.only(left: 20)),
+                Text(
+                  "Initializing list...",
+                  style: TextStyle(fontSize: fontSize),
+                ),
+              ],
+            );
           });
     }
     Widget body = Padding(
@@ -90,12 +92,39 @@ class InitializePageState extends State<InitializePage> {
               "Before using aclip, you must initialize a list on your account. "
               "Creating your list, as well as adding and removing items from it, "
               "will cost gas. The Aptos network isn't like other blockchains, "
-              "each action should only cost you a fraction of a cent, but this "
-              "is the cost of taking control of your own data",
+              "each action should only cost a fraction of a cent, but "
+              "understand that there is a small cost to taking control "
+              "of your own data.",
               style: TextStyle(fontSize: fontSize),
             ),
-            Padding(padding: EdgeInsets.only(top: 50)),
+            Padding(padding: EdgeInsets.only(top: 40)),
             lower,
+            Padding(padding: EdgeInsets.only(top: 40)),
+            Text(
+              "I have already initialized a list:",
+              style: TextStyle(
+                fontSize: fontSize - 2,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            Padding(padding: EdgeInsets.only(top: 20)),
+            Text(
+              "If you're confident you have already initialized a list, this "
+              "indicates a bug in the app. See the error here from checking "
+              "whether you already have a list and getting its content.",
+              style: TextStyle(fontSize: fontSize - 3),
+            ),
+            Padding(padding: EdgeInsets.only(top: 10)),
+            ElevatedButton(
+                onPressed: () async =>
+                    await showErrorInDialog(context, widget.error),
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(
+                        Color.fromARGB(255, 181, 29, 29))),
+                child: Text(
+                  "See error",
+                  style: TextStyle(fontSize: fontSize - 2),
+                ))
           ],
         ));
     return buildTopLevelScaffold(context, body, title: "Setup");
@@ -146,7 +175,7 @@ class TransactionResultWidget extends StatelessWidget {
           children: [
             Text(
               resultsHeaderString,
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.left,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
             ),
             Divider(height: 50),
