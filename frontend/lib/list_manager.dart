@@ -1,3 +1,7 @@
+import 'dart:collection';
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:aclip/common.dart';
 import 'package:aclip/constants.dart';
 import 'package:aclip/globals.dart';
@@ -6,21 +10,54 @@ import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:dio/dio.dart';
 import 'package:one_of/one_of.dart';
+import 'package:pinenacl/ed25519.dart';
+import 'package:pinenacl/x25519.dart';
 
-class Link {
-  Uri url;
-  List<String> tags;
+class LinkData {
+  // You'll see that tags is optional. We only fetch the tags when we have to,
+  // since it requires a read per link.
+  List<String>? tags;
+
+  // Whether the link came from an archived_ list.
   bool archived;
 
-  Link(this.url, this.tags, this.archived);
+  // Whether the link came from a secret_ list.
+  bool secret;
+
+  // This is only set if the link was secret (secret is true). This is the
+  // encrypted version of the key.
+  String? encryptedKey;
+
+  LinkData(this.archived, this.secret, {this.tags, this.encryptedKey});
+
+  @override
+  String toString() {
+    return "LinkData(archived: $archived, secret: $secret, tags: $tags, encryptedKey: $encryptedKey)";
+  }
+
+  // Convert struct to json, then to hex, then encrypt it. We sign the message
+  // using the public key, so only we can decrypt it with our private key.
+  Uint8List encrypt(SealedBox sealedBox) {
+    return sealedBox
+        .encrypt(HexString.fromRegularString(json.encode(this)).toBytes());
+  }
+
+  static LinkData decrypt(SealedBox sealedBox, Uint8List encrypted) {
+    return json.decode(
+        HexString.fromBytes(sealedBox.decrypt(encrypted)).toRegularString());
+  }
 }
 
 class ListManager {
   final AptosClientHelper aptosClientHelper = AptosClientHelper.fromBaseUrl(
       sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl);
   final AptosAccount aptosAccount;
+  final SealedBox sealedBox;
 
-  List<Link>? links;
+  // This is the regular and encrypted lists from the move module combined,
+  // plus their archived versions. The key here is the decrypted URL in the
+  // case that the link was a secret.
+  LinkedHashMap<String, LinkData>? links;
 
   Future? fetchDataFuture;
 
@@ -87,14 +124,15 @@ class ListManager {
         committed, userTransactionBuilder.build(), errorString);
   }
 
-  List<Link>? getActiveLinks() {
+  List<String>? getLinksKeys({bool archived = false}) {
     if (links == null) return null;
-    return links!.where((e) => !e.archived).toList();
-  }
-
-  List<Link>? getArchivedLinks() {
-    if (links == null) return null;
-    return links!.where((e) => e.archived).toList();
+    List<String> keys = [];
+    links!.forEach((k, v) {
+      if (v.archived == archived) {
+        keys.add(k);
+      }
+    });
+    return keys;
   }
 
   String buildResourceType({String? structName}) {
@@ -113,7 +151,8 @@ class ListManager {
     }
   }
 
-  Future<List<Link>> fetchData() async {
+  // We don't fetch values for the keys here (therefore no tags).
+  Future<LinkedHashMap<String, LinkData>> fetchData() async {
     print("Getting list from the blockchain");
 
     var resourceType = buildResourceType();
@@ -126,12 +165,28 @@ class ListManager {
 
     // Process info from the resources.
     var inner = resource.data.asMap["inner"];
-    var links = inner["links"];
 
     // Get the queue as it is in the account.
-    List<Link> out = [];
-    for (Map<String, dynamic> o in links) {
-      print(o);
+    LinkedHashMap<String, LinkData> out = LinkedHashMap();
+
+    // Read regular links.
+    for (String url in inner["links"]["keys"]) {
+      out[url] = LinkData(false, false);
+    }
+
+    // Read archived links.
+    for (String url in inner["archived_links"]["keys"]) {
+      out[url] = LinkData(true, false);
+    }
+
+    // Read secret links.
+    for (String url in inner["secret_links"]["keys"]) {
+      out[url] = LinkData(false, true);
+    }
+
+    // Read archived secret links.
+    for (String url in inner["archived_secret_links"]["keys"]) {
+      out[url] = LinkData(true, true);
     }
 
     return out;
@@ -155,8 +210,10 @@ class ListManager {
           "Failed to make ListManager from private key so we cleared shared prefs: $e");
       rethrow;
     }
-    return ListManager(aptosAccount);
+    AsymmetricPublicKey publicKey = VerifyKey(aptosAccount.pubKey().toBytes());
+    SealedBox sealedBox = SealedBox(publicKey);
+    return ListManager(aptosAccount, sealedBox);
   }
 
-  ListManager(this.aptosAccount);
+  ListManager(this.aptosAccount, this.sealedBox);
 }

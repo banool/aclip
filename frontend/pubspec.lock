@@ -368,7 +368,7 @@ packages:
     source: hosted
     version: "5.0.0"
   pinenacl:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pinenacl
       url: "https://pub.dartlang.org"

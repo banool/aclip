@@ -31,6 +31,7 @@ class ListPageSelectorState extends State<ListPageSelector> {
                   title: "Loading");
             }
             if (snapshot.hasError) {
+              print("fetch data future error: ${snapshot.error}");
               return InitializePage(error: snapshot.error!);
             }
             return ListPage();
