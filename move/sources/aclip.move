@@ -1,10 +1,11 @@
 // If ever updating this version, also update:
-// - driver/src/aptos_helper.rs
-// - aptos_infinite_jukebox/lib/constants.dart
-module aclip::RootV1 {
+// - frontend/lib/constants.dart
+module aclip::RootV2 {
     use Std::ASCII;
+    use Std::Option;
     use Std::Signer;
     use Std::Vector;
+    use aclip::MapTable;
 
     #[test_only]
     use Std::Errors;
@@ -17,35 +18,68 @@ module aclip::RootV1 {
     /// holds all the interesting stuff. We do it this way so it's easy to
     /// grab a mutable reference to everything at once without running into
     /// issues from holding multiple references. This is acceptable for now.
-    struct RootV1 has key {
+    struct RootV2 has key {
         inner: Inner,
     }
 
     /// All the interesting stuff.
     struct Inner has store {
-        /// List of links. We store them in a list because tables are such
-        /// a pain in the ass to work with.
-        links: vector<Link>,
+        /// Table of links, where the key is the ascii encoded / escaped URL.
+        links: MapTable::MapTable<ASCII::String, LinkData>,
+
+        /// As above, but the key is encrypted using the private key and the
+        /// value is an encrypted version of LinkData.
+        secret_links: MapTable::MapTable<vector<u8>, vector<u8>>,
+
+        /// Any link the user has chosen to archive.
+        archived_links: MapTable::MapTable<ASCII::String, LinkData>,
+
+        /// Any secret link the user has chosen to archive.
+        archived_secret_links: MapTable::MapTable<vector<u8>, vector<u8>>,
     }
 
-    struct Link has store {
-        /// ASCII encoded URL.
-        url: ASCII::String,
-
+    struct LinkData has drop, store {
         /// Any arbitrary tags the user wants to add.
         tags: vector<ASCII::String>,
-
-        /// If true, the link is considered archived (read).
-        archived: bool,
     }
 
     /// Initialize the list to the caller's account.
     public(script) fun initialize_list(account: &signer) {
-        move_to(account, RootV1{inner: Inner{ links: Vector::empty()}});
+        let inner = Inner {
+            links: MapTable::new(),
+            secret_links: MapTable::new(),
+            archived_links: MapTable::new(),
+            archived_secret_links: MapTable::new(),
+        };
+        move_to(account, RootV2{inner: inner });
     }
 
-    /// Public wrapper around add, since you can't use structs nor ascii in external calls.
-    public(script) fun add(account: &signer, url_raw: vector<u8>, tags_raw: vector<vector<u8>>) acquires RootV1 {
+    /// Delete everything, even there are still items. Use with extreme caution.
+    public(script) fun obliterate(account: &signer) acquires RootV2 {
+        let root = move_from<RootV2>(Signer::address_of(account));
+        let RootV2 { inner } = root;
+        let Inner { links, secret_links, archived_links, archived_secret_links } = inner;
+        dump_list(links);
+        dump_list(secret_links);
+        dump_list(archived_links);
+        dump_list(archived_secret_links);
+    }
+
+    fun dump_list<K: copy + store + drop, V: drop + store>(list: MapTable::MapTable<K, V>) {
+        let key = MapTable::head_key(&list);
+        loop {
+            if (Option::is_none(&key)) {
+                break
+            };
+            let (_v, _prev, next) = MapTable::remove_iter(&mut list, Option::borrow(&key));
+            key = next;
+        };
+        MapTable::destroy_empty(list);
+    }
+
+    /// Add a link to links. We don't bother handling collisions, we would just
+    /// make it throw an error anyway.
+    public(script) fun add(account: &signer, url_raw: vector<u8>, tags_raw: vector<vector<u8>>, add_to_archive: bool) acquires RootV2 {
         let tags = Vector::empty();
 
         let i = 0;
@@ -54,120 +88,117 @@ module aclip::RootV1 {
             i = i + 1;
         };
 
-        let link = Link {url: ASCII::string(url_raw), tags: tags, archived: false};
+        let link_data = LinkData {tags: tags};
 
-        add_internal(account, link);
-    }
-
-    /// Add a link to the list.
-    fun add_internal(account: &signer, link: Link) acquires RootV1 {
         let addr = Signer::address_of(account);
-        let inner = &mut borrow_global_mut<RootV1>(addr).inner;
-        
-        Vector::push_back(&mut inner.links, link);
+        let inner = &mut borrow_global_mut<RootV2>(addr).inner;
+
+        if (add_to_archive) {
+            MapTable::add(&mut inner.archived_links, &ASCII::string(url_raw), link_data);
+        } else {
+            MapTable::add(&mut inner.links, &ASCII::string(url_raw), link_data);
+        };
     }
 
-    /// Public wrapper around remove.
-    public(script) fun remove(account: &signer, url_raw: vector<u8>) acquires RootV1 {
-        remove_internal(account, ASCII::string(url_raw));
-    }
-
-    /// Remove the first item from the list that has the given URL.
-    fun remove_internal(account: &signer, url: ASCII::String) acquires RootV1 {
+    /// Add a link to secret_links. As above, we don't bother with collisions.
+    public(script) fun add_secret(account: &signer, url: vector<u8>, link_data: vector<u8>, add_to_archive: bool) acquires RootV2 {
         let addr = Signer::address_of(account);
-        let inner = &mut borrow_global_mut<RootV1>(addr).inner;
+        let inner = &mut borrow_global_mut<RootV2>(addr).inner;
 
-        let i = 0;
-        let len = Vector::length(&inner.links); 
-        while (i < len) {
-            if (Vector::borrow(&inner.links, i).url == url) {
-                break
-            };
-            i = i + 1;
+        if (add_to_archive) {
+            MapTable::add(&mut inner.archived_secret_links, &url, link_data);
+        } else {
+            MapTable::add(&mut inner.secret_links, &url, link_data);
         };
-
-        if (i == len) {
-            // We didn't find the item.
-            return
-        };
-
-        // We did find the item. Swap it to the end.
-        let end = len - 1;
-        if (i != end) {
-            Vector::swap(&mut inner.links, i, end);
-        };
-
-        // Remove the item.
-        let link = Vector::pop_back(&mut inner.links);
-
-        // Destructure it to destroy it.
-        let Link{ url, tags, archived } = link;
-        (url, tags, archived);
     }
 
-    /// Public wrapper around set_archived.
-    public(script) fun set_archived(account: &signer, url_raw: vector<u8>, archived: bool) acquires RootV1 {
-        set_archived_internal(account, ASCII::string(url_raw), archived);
-    }
-
-    /// Mark an item as archived or not. If there are multiple items in the list
-    /// with the same URL, this will only affect the oldest instance.
-    fun set_archived_internal(account: &signer, url: ASCII::String, archived: bool) acquires RootV1 {
+    /// Remove an item with the given key. We trust the user isn't trying to remove
+    /// a key that isn't in their list. We opt to be cheeky here and use this function
+    /// for all 4 different lists.
+    public(script) fun remove(account: &signer, url_raw: vector<u8>, from_archive: bool, from_secrets: bool) acquires RootV2 {
         let addr = Signer::address_of(account);
-        let inner = &mut borrow_global_mut<RootV1>(addr).inner;
+        let inner = &mut borrow_global_mut<RootV2>(addr).inner;
 
-        let i = 0;
-        let len = Vector::length(&inner.links); 
-        while (i < len) {
-            let link = Vector::borrow_mut(&mut inner.links, i);
-            if (link.url == url) {
-                link.archived = archived;
-                break
-            };
-            i = i + 1;
+        if (from_secrets) {
+            if (from_archive) {
+                MapTable::remove(&mut inner.archived_secret_links, url_raw);
+            } else {
+                MapTable::remove(&mut inner.secret_links, url_raw);
+            }
+        } else {
+            let url = ASCII::string(url_raw);
+            if (from_archive) {
+                MapTable::remove(&mut inner.archived_links, url);
+            } else {
+                MapTable::remove(&mut inner.links, url);
+            }
+        };
+    }
+
+    /// Move an item to / from the archived version of that list.
+    public(script) fun set_archived(account: &signer, url_raw: vector<u8>, make_archived: bool, is_secret: bool) acquires RootV2 {
+        let addr = Signer::address_of(account);
+        let inner = &mut borrow_global_mut<RootV2>(addr).inner;
+
+        if (is_secret) {
+            if (make_archived) {
+                let item = MapTable::remove(&mut inner.secret_links, url_raw);
+                MapTable::add(&mut inner.archived_secret_links, &url_raw, item);
+            } else {
+                let item = MapTable::remove(&mut inner.archived_secret_links, url_raw);
+                MapTable::add(&mut inner.secret_links, &url_raw, item);
+            }
+        } else {
+            let url = ASCII::string(url_raw);
+            if (make_archived) {
+                let item = MapTable::remove(&mut inner.links, url);
+                MapTable::add(&mut inner.archived_links, &url, item);
+            } else {
+                let item = MapTable::remove(&mut inner.archived_links, url);
+                MapTable::add(&mut inner.links, &url, item);
+            }
         };
     }
 
     #[test(account = @0x123)]
-    public(script) fun test_add_remove_archive(account: signer) acquires RootV1 {
+    public(script) fun test_add_remove_archive(account: signer) acquires RootV2 {
         let addr = Signer::address_of(&account);
 
         // Initialize a list on account.
         initialize_list(&account);
-        assert!(exists<RootV1>(addr), Errors::internal(E_TEST_FAILURE));
+        assert!(exists<RootV2>(addr), Errors::internal(E_TEST_FAILURE));
 
         // Add a link.
         let url1 = b"https://google.com";
-        add(&account, url1, Vector::empty());
+        add(&account, url1, Vector::empty(), false);
 
         // Confirm that the link was added.
-        let inner = &borrow_global<RootV1>(addr).inner;
-        assert!(Vector::length(&inner.links) == 1, Errors::internal(E_TEST_FAILURE));
+        let inner = &borrow_global<RootV2>(addr).inner;
+        assert!(MapTable::length(&inner.links) == 1, Errors::internal(E_TEST_FAILURE));
 
         // Add another link.
         let url2 = b"https://yahoo.com";
-        add(&account, url2, Vector::empty());
+        add(&account, url2, Vector::empty(), false);
 
-        // Remove some random link we never added.
-        remove(&account, b"fake");
-
-        // Confirm that nothing changed.
-        let inner = &borrow_global<RootV1>(addr).inner;
-        assert!(Vector::length(&inner.links) == 2, Errors::internal(E_TEST_FAILURE));
+        // Confirm that there are two links now.
+        let inner = &borrow_global<RootV2>(addr).inner;
+        assert!(MapTable::length(&inner.links) == 2, Errors::internal(E_TEST_FAILURE));
 
         // Mark the second link as archived.
-        set_archived(&account, url2, true);
+        set_archived(&account, url2, true, false);
 
         // Remove the link we added.
-        remove(&account, url1);
+        remove(&account, url1, false, false);
 
-        // Confirm that it is gone.
-        let inner = &borrow_global<RootV1>(addr).inner;
-        assert!(Vector::length(&inner.links) == 1, Errors::internal(E_TEST_FAILURE));
+        // Confirm that the standard list of links is now empty.
+        let inner = &borrow_global<RootV2>(addr).inner;
+        assert!(MapTable::length(&inner.links) == 0, Errors::internal(E_TEST_FAILURE));
 
-        // Confirm that the other link is still there and that it is archived.
-        let inner = &borrow_global<RootV1>(addr).inner;
-        assert!(Vector::borrow(&inner.links, 0).url == ASCII::string(url2), Errors::internal(E_TEST_FAILURE));
-        assert!(Vector::borrow(&inner.links, 0).archived, Errors::internal(E_TEST_FAILURE));
+        // Confirm that the other link is still there in the archived list.
+        let inner = &borrow_global<RootV2>(addr).inner;
+        assert!(MapTable::contains(&inner.archived_links, &ASCII::string(url2)), Errors::internal(E_TEST_FAILURE));
+
+        // Confirm that even if there are items, we can destroy everything.
+        obliterate(&account);
     }
 }
