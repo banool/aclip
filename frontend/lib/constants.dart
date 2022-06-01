@@ -14,8 +14,10 @@ const String moduleName = "RootV4";
 const String keyAptosNodeUrl = "keyAptosNodeUrl";
 const String keyPrivateKey = "keyPrivateKey";
 const String keySecretByDefault = "keySecretByDefault";
+const String keyLaunchInExternalBrowser = "keyLaunchInExternalBrowser";
 
 // Shared preferences defaults.
 const String defaultAptosNodeUrl = "https://fullnode.devnet.aptoslabs.com";
 const String? defaultPrivateKey = null;
 const bool defaultSecretByDefault = false;
+const bool defaultLaunchInExternalBrowser = true;

@@ -38,6 +38,17 @@ class SettingsPageState extends State<SettingsPage> {
               setState(() {});
             },
           ),
+          SettingsTile.switchTile(
+            initialValue: sharedPreferences.getBool(keySecretByDefault) ??
+                defaultSecretByDefault,
+            title: getText(
+              "Launch in external browser",
+            ),
+            onToggle: (bool enabled) async {
+              await sharedPreferences.setBool(keySecretByDefault, enabled);
+              setState(() {});
+            },
+          ),
         ],
         margin: margin,
       ),

@@ -13,6 +13,12 @@ import 'package:one_of/one_of.dart';
 import 'package:pinenacl/ed25519.dart';
 import 'package:pinenacl/x25519.dart';
 
+enum RemoveItemAction {
+  remove,
+  archive,
+  unarchive,
+}
+
 Uint8List encryptWithSealedBox(SealedBox sealedBox, Object object) {
   print(json.encode(object));
   print(HexString.fromRegularString(jsonEncode(object)).noPrefix());
@@ -23,6 +29,16 @@ Uint8List encryptWithSealedBox(SealedBox sealedBox, Object object) {
 T decryptWithSealedBox<T>(SealedBox sealedBox, Uint8List encrypted) {
   return json.decode(
       HexString.fromBytes(sealedBox.decrypt(encrypted)).toRegularString());
+}
+
+String getUrlForTransaction(SealedBox sealedBox, String url, bool secret) {
+  HexString hexString;
+  if (secret) {
+    hexString = HexString.fromBytes(encryptWithSealedBox(sealedBox, url));
+  } else {
+    hexString = HexString.fromRegularString(url);
+  }
+  return hexString.noPrefix();
 }
 
 class LinkData {
@@ -171,20 +187,19 @@ class ListManager {
       String url, bool secret, List<String> tags) async {
     List<JsonObject> arguments;
     String function_ = "${moduleAddress.withPrefix()}::$moduleName::";
+    String urlForTransaction = getUrlForTransaction(sealedBox, url, secret);
     if (secret) {
       var linkData = LinkData(false, secret);
-      var urlEncrypted = encryptWithSealedBox(sealedBox, url);
-      print(urlEncrypted);
       var linkDataEncrypted = linkData.encrypt(sealedBox);
       arguments = [
-        StringJsonObject(HexString.fromBytes(urlEncrypted).noPrefix()),
+        StringJsonObject(urlForTransaction),
         StringJsonObject(HexString.fromBytes(linkDataEncrypted).noPrefix()),
         BoolJsonObject(false),
       ];
       function_ += "add_secret";
     } else {
       arguments = [
-        StringJsonObject(HexString.fromRegularString(url).noPrefix()),
+        StringJsonObject(urlForTransaction),
         ListJsonObject(tags
             .map((e) => HexString.fromRegularString(e).noPrefix())
             .toList()),
@@ -200,7 +215,68 @@ class ListManager {
           ..typeArguments = ListBuilder([])
           ..arguments = ListBuilder(arguments);
 
-    return signBuildWait(scriptFunctionPayloadBuilder);
+    var result = await signBuildWait(scriptFunctionPayloadBuilder);
+
+    if (result.success) {
+      links![url] = LinkData(false, secret);
+    }
+
+    return result;
+  }
+
+  Future<TransactionResult> removeItem(
+      String url, LinkData linkData, RemoveItemAction action) async {
+    String urlForTransaction =
+        getUrlForTransaction(sealedBox, url, linkData.secret);
+
+    bool archiveArgument;
+    String function_ = "${moduleAddress.withPrefix()}::$moduleName::";
+
+    switch (action) {
+      case RemoveItemAction.remove:
+        function_ += "remove";
+        archiveArgument = linkData.archived;
+        break;
+      case RemoveItemAction.archive:
+        function_ += "set_archived";
+        archiveArgument = true;
+        break;
+      case RemoveItemAction.unarchive:
+        function_ += "set_archived";
+        archiveArgument = false;
+        break;
+    }
+
+    List<JsonObject> arguments = [
+      StringJsonObject(urlForTransaction),
+      BoolJsonObject(archiveArgument),
+      BoolJsonObject(linkData.secret),
+    ];
+
+    ScriptFunctionPayloadBuilder scriptFunctionPayloadBuilder =
+        ScriptFunctionPayloadBuilder()
+          ..type = "script_function_payload"
+          ..function_ = function_
+          ..typeArguments = ListBuilder([])
+          ..arguments = ListBuilder(arguments);
+
+    var result = await signBuildWait(scriptFunctionPayloadBuilder);
+
+    if (result.success) {
+      switch (action) {
+        case RemoveItemAction.remove:
+          links!.remove(url);
+          break;
+        case RemoveItemAction.archive:
+          links!["url"]!.archived = true;
+          break;
+        case RemoveItemAction.unarchive:
+          links!["url"]!.archived = false;
+          break;
+      }
+    }
+
+    return result;
   }
 
   Future<TransactionResult> signBuildWait(
