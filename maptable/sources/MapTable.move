@@ -1,7 +1,7 @@
 // Taken from Magnum6:
 // https://github.com/magnum6actual/Aptos-Tutorial/blob/Episode-4/sources/MapTable.move
 
-module aclip::MapTable {
+module maptable::MapTable {
     use Std::Option::{Self, Option};
     use AptosFramework::Table::{Self, Table};
     use Std::Vector;

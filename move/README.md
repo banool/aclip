@@ -19,6 +19,8 @@ aptos account create --private-key `yq .profiles.default.private_key < ~/.aptos/
 ## Setting up the module
 Make sure the addresses in Move.toml matches the `account` field in ~/.aptos/config.yml`.
 
+First, publish maptable. Check the README there.
+
 Publish the module:
 ```
 cd ~
@@ -33,3 +35,8 @@ As it is now, the aptos010 CLI is the only one that passes tests, whereas aptos0
 ## Troubleshooting
 - When testing / publishing, you might find some unexpected weird compilation errors. It's possible that we haven't invalidated the move package cache properly. In that case, run `rm ~/.move`.
 - The build dependencies aren't the only thing that matter, you need to make sure you're using the correct version of the CLI as well. You may even need to test with one version but publish with another.
+
+To add an item to a list directly, try something like this:
+```
+aptos move run --function-id "$(yq .profiles.default.account < ~/.aptos/config.yml)::$(cat github/aclip/move/sources/aclip.move | grep -o -E 'RootV\d+' | head -n 1)::add_simple" --args string:google.com
+```

@@ -1,12 +1,10 @@
 [package]
-name = "aclip"
+name = "MapTable"
 version = "0.1.0"
 
 [dependencies]
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "2acc8f48e1b16bd5ec3152ed585bb80b6b76d346" }
-MapTable = { local = "../maptable" }
 
 [addresses]
-aclip = "c40f1c9b9fdc204cf77f68c9bb7029b0abbe8ad9e5561f7794964076a4fbdcfd"
 maptable = "fad1765cfd2f5bb379d87a8cd130a7d725c674d69dc4386f4f1f56f0b606bf03"
 
