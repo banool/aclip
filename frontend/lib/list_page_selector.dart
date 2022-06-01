@@ -22,13 +22,15 @@ class ListPageSelectorState extends State<ListPageSelector> {
     if (privateKey == null) {
       return RegisterPage();
     } else {
+      print(listManager.fetchDataFuture);
+      print("kljsdflkdskjfl");
       return FutureBuilder(
           future: listManager.fetchDataFuture,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
               return buildTopLevelScaffold(
                   context, Center(child: CircularProgressIndicator()),
-                  title: "Setup");
+                  title: "Loading");
             }
             if (snapshot.hasError) {
               return InitializePage(error: snapshot.error!);

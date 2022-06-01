@@ -1,11 +1,7 @@
-import 'package:aclip/globals.dart';
-import 'package:aclip/list_manager.dart';
 import 'package:aclip/page_selector.dart';
-import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'constants.dart';
 import 'settings_page.dart';
 
 const double fontSizeLarge = 24;
@@ -19,37 +15,6 @@ class RegisterPage extends StatefulWidget {
 }
 
 class RegisterPageState extends State<RegisterPage> {
-  Future<void> onPressed() async {
-    print("Awaiting private key");
-    bool confirmed = await showChangeStringSharedPrefDialog(
-        context, "Private key", keyPrivateKey, defaultPrivateKey,
-        validateFn: (String value) {
-      try {
-        // TODO: Buff HexString.fromString so it does this check.
-        var hexString = HexString.fromString(value);
-        AptosAccount.fromPrivateKeyHexString(hexString);
-        print("Private key was valid");
-        return true;
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Private key was invalid: $e"),
-        ));
-        return false;
-      }
-    });
-    if (confirmed) {
-      print("Private key set");
-      listManager = ListManager.fromSharedPrefs();
-      try {
-        await listManager.triggerPull();
-        print("Pulled list successfully");
-      } catch (e) {
-        print(
-            "Failed to pull after setting private key, this is probably expected: $e");
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     Widget body = Padding(
@@ -95,7 +60,7 @@ class RegisterPageState extends State<RegisterPage> {
             ),
             Padding(padding: EdgeInsets.only(top: 20)),
             ElevatedButton(
-                onPressed: onPressed,
+                onPressed: () async => await runUpdatePrivateKeyDialog(context),
                 child: Text(
                   "Enter private key",
                   style: TextStyle(fontSize: fontSize),

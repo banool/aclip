@@ -1,4 +1,5 @@
 import 'package:aclip/list_manager.dart';
+import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -45,12 +46,7 @@ class SettingsPageState extends State<SettingsPage> {
               ),
               trailing: Container(),
               onPressed: (BuildContext context) async {
-                bool confirmed = await showChangeStringSharedPrefDialog(
-                    context, "Private key", keyPrivateKey, defaultPrivateKey);
-                if (confirmed) {
-                  listManager = ListManager.fromSharedPrefs();
-                  setState(() {});
-                }
+                await runUpdatePrivateKeyDialog(context);
               }),
         ],
         margin: margin,
@@ -139,7 +135,8 @@ Future<bool> showChangeStringSharedPrefDialog(
     BuildContext context, String title, String key, String? defaultValue,
     {String cancelText = "Cancel",
     String confirmText = "Confirm",
-    bool Function(String value)? validateFn}) async {
+    bool Function(BuildContext, String)? validateFn,
+    allowEmptyString = false}) async {
   bool confirmed = false;
   String currentValue = sharedPreferences.getString(key) ?? defaultValue ?? "";
   TextEditingController textController =
@@ -161,12 +158,14 @@ Future<bool> showChangeStringSharedPrefDialog(
     child: Text(confirmText),
     onPressed: () async {
       String newValue = textController.text;
-      if (newValue == "") {
+      if (newValue == "" && !allowEmptyString) {
         print("Not setting empty string for $key");
       } else {
+        print("wtf");
+        print(validateFn);
         bool valid = true;
         if (validateFn != null) {
-          valid = validateFn(newValue);
+          valid = validateFn(context, newValue);
         }
         if (valid) {
           await sharedPreferences.setString(key, newValue);
@@ -200,6 +199,46 @@ Future<bool> showChangeStringSharedPrefDialog(
     },
   );
   return confirmed;
+}
+
+bool validatePrivateKey(BuildContext context, String value) {
+  // ignore: prefer_is_empty
+  if (value.length == 0) return true;
+  try {
+    // TODO: Buff HexString.fromString so it does this check.
+    var hexString = HexString.fromString(value);
+    AptosAccount.fromPrivateKeyHexString(hexString);
+    print("Private key was valid");
+    return true;
+  } catch (e) {
+    print("HEY lkjsdflkdsfkl");
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text("Private key was invalid: $e"),
+    ));
+    return false;
+  }
+}
+
+Future<void> runUpdatePrivateKeyDialog(BuildContext context) async {
+  // ignore: prefer_function_declarations_over_variables
+  bool confirmed = await showChangeStringSharedPrefDialog(
+      context, "Private key", keyPrivateKey, defaultPrivateKey,
+      validateFn: validatePrivateKey, allowEmptyString: true);
+  if (confirmed) {
+    print("Private key set");
+    listManager = ListManager.fromSharedPrefs();
+    try {
+      var f = listManager.triggerPull();
+      InheritedPageSelectorController.of(context)
+          .pageSelectorController
+          .refreshParent();
+      await f;
+      print("Pulled list successfully");
+    } catch (e) {
+      print(
+          "Failed to pull after setting private key, this is probably expected: $e");
+    }
+  }
 }
 
 class LegalInformationPage extends StatelessWidget {

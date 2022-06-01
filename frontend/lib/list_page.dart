@@ -11,6 +11,6 @@ class ListPage extends StatefulWidget {
 class ListPageState extends State<ListPage> {
   @override
   Widget build(BuildContext context) {
-    return buildTopLevelScaffold(context, Container());
+    return buildTopLevelScaffold(context, Text("list page"), title: "List");
   }
 }

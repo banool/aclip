@@ -1,3 +1,4 @@
+import 'package:aclip/globals.dart';
 import 'package:aclip/list_page_selector.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +14,7 @@ class PageSelector extends StatefulWidget {
 
 class PageSelectorState extends State<PageSelector> {
   late PageSelectorController pageSelectorController;
+  ValueKey childKey = ValueKey("whatever");
 
   @override
   void initState() {
@@ -21,13 +23,18 @@ class PageSelectorState extends State<PageSelector> {
   }
 
   void refresh() {
-    setState(() {});
+    print("refreshing: ${listManager.fetchDataFuture}");
+    setState(() {
+      // This forces the child to rebuild.
+      childKey = ValueKey(listManager.fetchDataFuture.hashCode);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return InheritedPageSelectorController(
         pageSelectorController: pageSelectorController,
+        key: childKey,
         child: pageSelectorController.getCurrentScaffold());
   }
 }
@@ -48,7 +55,7 @@ class PageSelectorController {
     TabInformation(
         BottomNavigationBarItem(
           icon: Icon(Icons.list_alt),
-          label: "Links",
+          label: "List",
         ),
         ListPageSelector()),
     TabInformation(
