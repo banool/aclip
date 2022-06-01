@@ -25,6 +25,23 @@ class SettingsPageState extends State<SettingsPage> {
 
     List<AbstractSettingsSection?> sections = [
       SettingsSection(
+        title: Text('App Settings'),
+        tiles: [
+          SettingsTile.switchTile(
+            initialValue: sharedPreferences.getBool(keySecretByDefault) ??
+                defaultSecretByDefault,
+            title: getText(
+              "Encrypt items by default",
+            ),
+            onToggle: (bool enabled) async {
+              await sharedPreferences.setBool(keySecretByDefault, enabled);
+              setState(() {});
+            },
+          ),
+        ],
+        margin: margin,
+      ),
+      SettingsSection(
         title: Text('Aptos Connection Settings'),
         tiles: [
           SettingsTile.navigation(

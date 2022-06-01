@@ -116,7 +116,7 @@ Scaffold buildTopLevelScaffold(BuildContext context, Widget body,
       leading: leadingAppBarButton,
       title: Text(
         title,
-        style: TextStyle(fontSize: 18),
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
       ),
       toolbarHeight: 50,
       centerTitle: true,

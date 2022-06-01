@@ -13,7 +13,9 @@ const String moduleName = "RootV4";
 // Shared preferences keys.
 const String keyAptosNodeUrl = "keyAptosNodeUrl";
 const String keyPrivateKey = "keyPrivateKey";
+const String keySecretByDefault = "keySecretByDefault";
 
 // Shared preferences defaults.
 const String defaultAptosNodeUrl = "https://fullnode.devnet.aptoslabs.com";
 const String? defaultPrivateKey = null;
+const bool defaultSecretByDefault = false;

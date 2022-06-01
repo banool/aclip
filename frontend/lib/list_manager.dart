@@ -1,6 +1,5 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:aclip/common.dart';
 import 'package:aclip/constants.dart';
@@ -8,10 +7,23 @@ import 'package:aclip/globals.dart';
 import 'package:aptos_sdk_dart/aptos_client_helper.dart';
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:built_collection/built_collection.dart';
+import 'package:built_value/json_object.dart';
 import 'package:dio/dio.dart';
 import 'package:one_of/one_of.dart';
 import 'package:pinenacl/ed25519.dart';
 import 'package:pinenacl/x25519.dart';
+
+Uint8List encryptWithSealedBox(SealedBox sealedBox, Object object) {
+  print(json.encode(object));
+  print(HexString.fromRegularString(jsonEncode(object)).noPrefix());
+  return sealedBox
+      .encrypt(HexString.fromRegularString(json.encode(object)).toBytes());
+}
+
+T decryptWithSealedBox<T>(SealedBox sealedBox, Uint8List encrypted) {
+  return json.decode(
+      HexString.fromBytes(sealedBox.decrypt(encrypted)).toRegularString());
+}
 
 class LinkData {
   // You'll see that tags is optional. We only fetch the tags when we have to,
@@ -24,27 +36,34 @@ class LinkData {
   // Whether the link came from a secret_ list.
   bool secret;
 
-  // This is only set if the link was secret (secret is true). This is the
-  // encrypted version of the key.
-  String? encryptedKey;
-
-  LinkData(this.archived, this.secret, {this.tags, this.encryptedKey});
+  LinkData(this.archived, this.secret, {this.tags});
 
   @override
   String toString() {
-    return "LinkData(archived: $archived, secret: $secret, tags: $tags, encryptedKey: $encryptedKey)";
+    return "LinkData(archived: $archived, secret: $secret, tags: $tags)";
+  }
+
+  LinkData.fromJson(Map<String, dynamic> json)
+      : tags = json["tags"],
+        archived = json["archived"],
+        secret = json["secret"];
+
+  Map<String, dynamic> toJson() {
+    return {
+      "tags": tags ?? [],
+      "archived": archived,
+      "secret": secret,
+    };
   }
 
   // Convert struct to json, then to hex, then encrypt it. We sign the message
   // using the public key, so only we can decrypt it with our private key.
   Uint8List encrypt(SealedBox sealedBox) {
-    return sealedBox
-        .encrypt(HexString.fromRegularString(json.encode(this)).toBytes());
+    return encryptWithSealedBox(sealedBox, this);
   }
 
   static LinkData decrypt(SealedBox sealedBox, Uint8List encrypted) {
-    return json.decode(
-        HexString.fromBytes(sealedBox.decrypt(encrypted)).toRegularString());
+    return decryptWithSealedBox<LinkData>(sealedBox, encrypted);
   }
 }
 
@@ -62,16 +81,6 @@ class ListManager {
   Future? fetchDataFuture;
 
   Future<TransactionResult> initializeList() async {
-    String aptosNodeUrl =
-        sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl;
-    HexString privateKey =
-        HexString.fromString(sharedPreferences.getString(keyPrivateKey)!);
-
-    AptosClientHelper aptosClientHelper =
-        AptosClientHelper.fromBaseUrl(aptosNodeUrl);
-
-    AptosAccount account = AptosAccount.fromPrivateKeyHexString(privateKey);
-
     String func = "${moduleAddress.withPrefix()}::$moduleName::initialize_list";
 
     // Build a script function payload that transfers coin.
@@ -79,49 +88,10 @@ class ListManager {
         ScriptFunctionPayloadBuilder()
           ..type = "script_function_payload"
           ..function_ = func
-          // This is the type for an ascii string under the hood.
           ..typeArguments = ListBuilder([])
-          // ..typeArguments = ListBuilder(["address", "vector<u8>"])
           ..arguments = ListBuilder([]);
 
-    // Build that into a transaction payload.
-    TransactionPayloadBuilder transactionPayloadBuilder =
-        TransactionPayloadBuilder()
-          ..oneOf = OneOf1(value: scriptFunctionPayloadBuilder.build());
-
-    // Build a transasction request. This includes a call to determine the
-    // current sequence number so we can build that transasction.
-    $UserTransactionRequestBuilder userTransactionBuilder =
-        await aptosClientHelper.generateTransaction(
-            account.address, transactionPayloadBuilder);
-
-    // Convert the transaction into the appropriate format and then sign it.
-    SubmitTransactionRequestBuilder submitTransactionRequestBuilder =
-        await aptosClientHelper.signTransaction(
-            account, userTransactionBuilder);
-
-    bool committed = false;
-    String? errorString;
-
-    // Finally submit the transaction.
-    try {
-      PendingTransaction pendingTransaction = await unwrapClientCall(
-          aptosClientHelper.client.getTransactionsApi().submitTransaction(
-              submitTransactionRequest:
-                  submitTransactionRequestBuilder.build()));
-
-      // Wait for the transaction to be committed.
-      PendingTransactionResult pendingTransactionResult =
-          await aptosClientHelper.waitForTransaction(pendingTransaction.hash);
-
-      committed = pendingTransactionResult.committed;
-      errorString = pendingTransactionResult.getErrorString();
-    } catch (e) {
-      errorString = getErrorString(e);
-    }
-
-    return TransactionResult(
-        committed, userTransactionBuilder.build(), errorString);
+    return signBuildWait(scriptFunctionPayloadBuilder);
   }
 
   List<String>? getLinksKeys({bool archived = false}) {
@@ -195,6 +165,78 @@ class ListManager {
   Future<void> triggerPull() async {
     fetchDataFuture = pull();
     return fetchDataFuture;
+  }
+
+  Future<TransactionResult> addItem(
+      String url, bool secret, List<String> tags) async {
+    List<JsonObject> arguments;
+    String function_ = "${moduleAddress.withPrefix()}::$moduleName::";
+    if (secret) {
+      var linkData = LinkData(false, secret);
+      var urlEncrypted = encryptWithSealedBox(sealedBox, url);
+      print(urlEncrypted);
+      var linkDataEncrypted = linkData.encrypt(sealedBox);
+      arguments = [
+        StringJsonObject(HexString.fromBytes(urlEncrypted).noPrefix()),
+        StringJsonObject(HexString.fromBytes(linkDataEncrypted).noPrefix()),
+        BoolJsonObject(false),
+      ];
+      function_ += "add_secret";
+    } else {
+      arguments = [
+        StringJsonObject(HexString.fromRegularString(url).noPrefix()),
+        ListJsonObject(tags
+            .map((e) => HexString.fromRegularString(e).noPrefix())
+            .toList()),
+        BoolJsonObject(false),
+      ];
+      function_ += "add";
+    }
+
+    ScriptFunctionPayloadBuilder scriptFunctionPayloadBuilder =
+        ScriptFunctionPayloadBuilder()
+          ..type = "script_function_payload"
+          ..function_ = function_
+          ..typeArguments = ListBuilder([])
+          ..arguments = ListBuilder(arguments);
+
+    return signBuildWait(scriptFunctionPayloadBuilder);
+  }
+
+  Future<TransactionResult> signBuildWait(
+      ScriptFunctionPayloadBuilder scriptFunctionPayloadBuilder) async {
+    TransactionPayloadBuilder transactionPayloadBuilder =
+        TransactionPayloadBuilder()
+          ..oneOf = OneOf1(value: scriptFunctionPayloadBuilder.build());
+
+    $UserTransactionRequestBuilder userTransactionBuilder =
+        await aptosClientHelper.generateTransaction(
+            aptosAccount.address, transactionPayloadBuilder);
+
+    SubmitTransactionRequestBuilder submitTransactionRequestBuilder =
+        await aptosClientHelper.signTransaction(
+            aptosAccount, userTransactionBuilder);
+
+    bool committed = false;
+    String? errorString;
+
+    try {
+      PendingTransaction pendingTransaction = await unwrapClientCall(
+          aptosClientHelper.client.getTransactionsApi().submitTransaction(
+              submitTransactionRequest:
+                  submitTransactionRequestBuilder.build()));
+
+      PendingTransactionResult pendingTransactionResult =
+          await aptosClientHelper.waitForTransaction(pendingTransaction.hash);
+
+      committed = pendingTransactionResult.committed;
+      errorString = pendingTransactionResult.getErrorString();
+    } catch (e) {
+      errorString = getErrorString(e);
+    }
+
+    return TransactionResult(
+        committed, userTransactionBuilder.build(), errorString);
   }
 
   // This assumes the private key is already set.
