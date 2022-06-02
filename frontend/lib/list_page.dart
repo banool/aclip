@@ -23,6 +23,8 @@ class ListPageState extends State<ListPage> {
   Future? removeItemFuture;
   String? currentAction;
 
+  bool showArchived = false;
+
   Future<void> initiateAddItemFlow(BuildContext context) async {
     await showModalBottomSheet(
         context: context,
@@ -96,7 +98,14 @@ class ListPageState extends State<ListPage> {
           onPressed: () async => await initiateAddItemFlow(context),
           icon: Icon(Icons.add))
     ];
-    var linksKeys = listManager.getLinksKeys(archived: false)!;
+    Widget leadingAppBarAction = IconButton(
+        onPressed: () {
+          setState(() {
+            showArchived = !showArchived;
+          });
+        },
+        icon: Icon(showArchived ? Icons.list_alt : Icons.archive_outlined));
+    var linksKeys = listManager.getLinksKeys(archived: showArchived)!;
     Widget listView = ListView.builder(
         itemCount: linksKeys.length,
         itemBuilder: (context, index) {
@@ -113,7 +122,9 @@ class ListPageState extends State<ListPage> {
     );
     return buildTopLevelScaffold(
         context, Padding(padding: EdgeInsets.all(5), child: body),
-        title: "My List", appBarActions: appBarActions);
+        title: showArchived ? "Archived" : "My List",
+        appBarActions: appBarActions,
+        leadingAppBarButton: leadingAppBarAction);
   }
 
   Widget buildListItem(String url, LinkData linkData) {
@@ -132,19 +143,24 @@ class ListPageState extends State<ListPage> {
     }
     return Card(
         child: Slidable(
-            key: ValueKey(url),
+            key: ValueKey(url + "${linkData.archived}"),
             endActionPane: ActionPane(
-                extentRatio: 0.45,
+                extentRatio: 0.5,
                 dragDismissible: false,
                 dismissible: DismissiblePane(onDismissed: () => {}),
                 motion: ScrollMotion(),
                 children: [
                   SlidableAction(
                     onPressed: (BuildContext context) async => await removeItem(
-                        context, url, linkData, RemoveItemAction.archive),
+                        context,
+                        url,
+                        linkData,
+                        showArchived
+                            ? RemoveItemAction.unarchive
+                            : RemoveItemAction.archive),
                     backgroundColor: Colors.lightBlue,
                     foregroundColor: Colors.white,
-                    label: "Archive",
+                    label: showArchived ? "Unarchive" : "Archive",
                     icon: Icons.archive,
                     autoClose: false,
                   ),

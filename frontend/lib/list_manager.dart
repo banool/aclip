@@ -139,7 +139,7 @@ class ListManager {
   Future<void> pull() async {
     try {
       links = await fetchData();
-      print("New links: $links");
+      print("Updated links: $links");
     } on DioError catch (e) {
       print(getErrorString(e));
       rethrow;
@@ -285,10 +285,10 @@ class ListManager {
           links!.remove(url);
           break;
         case RemoveItemAction.archive:
-          links!["url"]!.archived = true;
+          links![url]!.archived = true;
           break;
         case RemoveItemAction.unarchive:
-          links!["url"]!.archived = false;
+          links![url]!.archived = false;
           break;
       }
     }
