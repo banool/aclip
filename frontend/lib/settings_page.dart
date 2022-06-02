@@ -39,16 +39,31 @@ class SettingsPageState extends State<SettingsPage> {
             },
           ),
           SettingsTile.switchTile(
-            initialValue: sharedPreferences.getBool(keySecretByDefault) ??
-                defaultSecretByDefault,
+            initialValue:
+                sharedPreferences.getBool(keyLaunchInExternalBrowser) ??
+                    defaultLaunchInExternalBrowser,
             title: getText(
               "Launch in external browser",
             ),
             onToggle: (bool enabled) async {
-              await sharedPreferences.setBool(keySecretByDefault, enabled);
+              await sharedPreferences.setBool(
+                  keyLaunchInExternalBrowser, enabled);
               setState(() {});
             },
           ),
+          SettingsTile.navigation(
+              title: getText(
+                "Delete everything",
+              ),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                await listManager.obliterateList();
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text("Deleted everything"),
+                ));
+                listManager = ListManager.fromSharedPrefs();
+                setState(() {});
+              }),
         ],
         margin: margin,
       ),

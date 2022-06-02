@@ -3,7 +3,7 @@ description: Bookmarks, powered by Aptos
 
 publish_to: 'none'
 
-version: 1.0.16+17
+version: 1.0.17+18
 
 environment:
   sdk: ">=2.16.2 <3.0.0"

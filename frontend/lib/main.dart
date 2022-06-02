@@ -9,7 +9,7 @@ import 'list_manager.dart';
 import 'page_selector.dart';
 import 'globals.dart';
 
-Future<void> setup() async {
+Future<void> setup({bool pull = true}) async {
   print("Setup starting");
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +21,9 @@ Future<void> setup() async {
   HexString? privateKey = getPrivateKey();
   if (privateKey != null) {
     listManager = ListManager.fromSharedPrefs();
-    listManager.triggerPull();
+    if (pull) {
+      listManager.triggerPull();
+    }
   }
 
   packageInfo = await PackageInfo.fromPlatform();

@@ -30,8 +30,8 @@ class AddItemScreenState extends State<AddItemScreen> {
 
   void triggerAddItem() {
     setState(() {
-      addItemFuture =
-          listManager.addItem(textController.text, makeEncrypted, []);
+      addItemFuture = listManager.addItem(
+          textController.text.replaceAll("\n", " "), makeEncrypted, []);
     });
   }
 

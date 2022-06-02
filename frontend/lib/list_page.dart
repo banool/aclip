@@ -32,13 +32,14 @@ class ListPageState extends State<ListPage> {
               heightFactor: 0.85, child: AddItemScreen());
         });
     await listManager.pull();
+    setState(() {});
   }
 
-  Future<TransactionResultWidget> removeItem(BuildContext context, String url,
+  Future<TransactionResult> removeItem(BuildContext context, String url,
       LinkData linkData, RemoveItemAction removeItemAction) async {
     setState(() {
       removeItemFuture =
-          listManager.removeItem(url, linkData, RemoveItemAction.archive);
+          listManager.removeItem(url, linkData, removeItemAction);
       switch (removeItemAction) {
         case RemoveItemAction.remove:
           currentAction = "Deleting";
@@ -82,7 +83,6 @@ class ListPageState extends State<ListPage> {
         });
     var result = await removeItemFuture;
     if (result.success) {
-      listManager.links!.remove(url);
       final controller = Slidable.of(context);
       controller!.dismiss(ResizeRequest(Duration(milliseconds: 100), () => {}));
     }
@@ -96,49 +96,21 @@ class ListPageState extends State<ListPage> {
           onPressed: () async => await initiateAddItemFlow(context),
           icon: Icon(Icons.add))
     ];
-    var links = listManager.links!;
-    Widget body = ListView.builder(
-        itemCount: links.length,
+    var linksKeys = listManager.getLinksKeys(archived: false)!;
+    Widget listView = ListView.builder(
+        itemCount: linksKeys.length,
         itemBuilder: (context, index) {
-          String key = links.keys.elementAt(index);
-          return buildListItem(key, links[key]!);
+          String key = linksKeys.elementAt(index);
+          return buildListItem(key, listManager.links![key]!);
         });
-    /*
-    if (removeItemFuture != null) {
-      body = Stack(
-        // Items that appear first are on the bottom.
-        children: [
-          body,
-          BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Dia(
-                  content: FutureBuilder(
-                      future: removeItemFuture,
-                      builder: (BuildContext context, AsyncSnapshot snapshot) {
-                        if (snapshot.connectionState != ConnectionState.done) {
-                          return Padding(
-                              padding: EdgeInsets.all(20),
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    CircularProgressIndicator(),
-                                    Padding(padding: EdgeInsets.only(left: 15)),
-                                    Text(
-                                      "${currentAction!} item...",
-                                      style: TextStyle(fontSize: 18),
-                                    )
-                                  ]));
-                        }
-                        if (snapshot.hasError) {
-                          return TransactionResultWidget(TransactionResult(
-                              false, null, getErrorString(snapshot.error!)));
-                        }
-                        return TransactionResultWidget(snapshot.data!);
-                      }))),
-        ],
-      );
-    }
-    */
+    Widget body = RefreshIndicator(
+      child: listView,
+      onRefresh: () async {
+        await listManager.pull();
+        setState(() {});
+      },
+      displacement: 2,
+    );
     return buildTopLevelScaffold(
         context, Padding(padding: EdgeInsets.all(5), child: body),
         title: "My List", appBarActions: appBarActions);

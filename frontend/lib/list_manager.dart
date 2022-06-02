@@ -4,14 +4,17 @@ import 'dart:convert';
 import 'package:aclip/common.dart';
 import 'package:aclip/constants.dart';
 import 'package:aclip/globals.dart';
-import 'package:aptos_sdk_dart/aptos_client_helper.dart';
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/json_object.dart';
 import 'package:dio/dio.dart';
 import 'package:one_of/one_of.dart';
-import 'package:pinenacl/ed25519.dart';
+import 'package:pinenacl/tweetnacl.dart';
 import 'package:pinenacl/x25519.dart';
+
+// TODO: This is obviously bad and potentially completely invalidates the
+// encryption, investigate an alternative.
+Uint8List nonce = Uint8List.fromList(List.filled(TweetNaCl.nonceLength, 1));
 
 enum RemoveItemAction {
   remove,
@@ -19,26 +22,18 @@ enum RemoveItemAction {
   unarchive,
 }
 
-Uint8List encryptWithSealedBox(SealedBox sealedBox, Object object) {
-  print(json.encode(object));
-  print(HexString.fromRegularString(jsonEncode(object)).noPrefix());
-  return sealedBox
-      .encrypt(HexString.fromRegularString(json.encode(object)).toBytes());
+String myEncryptWithSecretBox(SecretBox secretBox, Object object) {
+  var jsonEncoded = json.encode(object);
+  var encrypted = secretBox.encrypt(Uint8List.fromList(jsonEncoded.codeUnits),
+      nonce: nonce);
+  return HexString.fromBytes(encrypted.cipherText.toUint8List()).withPrefix();
 }
 
-T decryptWithSealedBox<T>(SealedBox sealedBox, Uint8List encrypted) {
-  return json.decode(
-      HexString.fromBytes(sealedBox.decrypt(encrypted)).toRegularString());
-}
-
-String getUrlForTransaction(SealedBox sealedBox, String url, bool secret) {
-  HexString hexString;
-  if (secret) {
-    hexString = HexString.fromBytes(encryptWithSealedBox(sealedBox, url));
-  } else {
-    hexString = HexString.fromRegularString(url);
-  }
-  return hexString.noPrefix();
+dynamic myDecryptWithSecretBox(SecretBox secretBox, String encrypted) {
+  var decrypted = secretBox.decrypt(
+      ByteList.fromList(HexString.fromString(encrypted).toBytes()),
+      nonce: nonce);
+  return json.decode(String.fromCharCodes(decrypted));
 }
 
 class LinkData {
@@ -52,7 +47,7 @@ class LinkData {
   // Whether the link came from a secret_ list.
   bool secret;
 
-  LinkData(this.archived, this.secret, {this.tags});
+  LinkData({required this.archived, required this.secret, this.tags});
 
   @override
   String toString() {
@@ -60,7 +55,7 @@ class LinkData {
   }
 
   LinkData.fromJson(Map<String, dynamic> json)
-      : tags = json["tags"],
+      : tags = List<String>.from(json["tags"]),
         archived = json["archived"],
         secret = json["secret"];
 
@@ -74,12 +69,12 @@ class LinkData {
 
   // Convert struct to json, then to hex, then encrypt it. We sign the message
   // using the public key, so only we can decrypt it with our private key.
-  Uint8List encrypt(SealedBox sealedBox) {
-    return encryptWithSealedBox(sealedBox, this);
+  String encrypt(SecretBox secretBox) {
+    return myEncryptWithSecretBox(secretBox, this);
   }
 
-  static LinkData decrypt(SealedBox sealedBox, Uint8List encrypted) {
-    return decryptWithSealedBox<LinkData>(sealedBox, encrypted);
+  static LinkData decrypt(SecretBox secretBox, String encrypted) {
+    return LinkData.fromJson(myDecryptWithSecretBox(secretBox, encrypted));
   }
 }
 
@@ -87,7 +82,9 @@ class ListManager {
   final AptosClientHelper aptosClientHelper = AptosClientHelper.fromBaseUrl(
       sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl);
   final AptosAccount aptosAccount;
-  final SealedBox sealedBox;
+
+  // For encrypting and decrypting secrets we write to the chain.
+  final SecretBox secretBox;
 
   // This is the regular and encrypted lists from the move module combined,
   // plus their archived versions. The key here is the decrypted URL in the
@@ -98,6 +95,20 @@ class ListManager {
 
   Future<TransactionResult> initializeList() async {
     String func = "${moduleAddress.withPrefix()}::$moduleName::initialize_list";
+
+    // Build a script function payload that transfers coin.
+    ScriptFunctionPayloadBuilder scriptFunctionPayloadBuilder =
+        ScriptFunctionPayloadBuilder()
+          ..type = "script_function_payload"
+          ..function_ = func
+          ..typeArguments = ListBuilder([])
+          ..arguments = ListBuilder([]);
+
+    return signBuildWait(scriptFunctionPayloadBuilder);
+  }
+
+  Future<TransactionResult> obliterateList() async {
+    String func = "${moduleAddress.withPrefix()}::$moduleName::obliterate";
 
     // Build a script function payload that transfers coin.
     ScriptFunctionPayloadBuilder scriptFunctionPayloadBuilder =
@@ -157,22 +168,24 @@ class ListManager {
 
     // Read regular links.
     for (String url in inner["links"]["keys"]) {
-      out[url] = LinkData(false, false);
+      out[url] = LinkData(archived: false, secret: false);
     }
 
     // Read archived links.
     for (String url in inner["archived_links"]["keys"]) {
-      out[url] = LinkData(true, false);
+      out[url] = LinkData(archived: true, secret: false);
     }
 
     // Read secret links.
     for (String url in inner["secret_links"]["keys"]) {
-      out[url] = LinkData(false, true);
+      out[myDecryptWithSecretBox(secretBox, url)] =
+          LinkData(archived: false, secret: true);
     }
 
     // Read archived secret links.
     for (String url in inner["archived_secret_links"]["keys"]) {
-      out[url] = LinkData(true, true);
+      out[myDecryptWithSecretBox(secretBox, url)] =
+          LinkData(archived: true, secret: true);
     }
 
     return out;
@@ -185,21 +198,21 @@ class ListManager {
 
   Future<TransactionResult> addItem(
       String url, bool secret, List<String> tags) async {
+    url = url.trim().replaceAll("\n", "");
+
     List<JsonObject> arguments;
     String function_ = "${moduleAddress.withPrefix()}::$moduleName::";
-    String urlForTransaction = getUrlForTransaction(sealedBox, url, secret);
     if (secret) {
-      var linkData = LinkData(false, secret);
-      var linkDataEncrypted = linkData.encrypt(sealedBox);
+      var linkData = LinkData(archived: false, secret: secret);
       arguments = [
-        StringJsonObject(urlForTransaction),
-        StringJsonObject(HexString.fromBytes(linkDataEncrypted).noPrefix()),
+        StringJsonObject(myEncryptWithSecretBox(secretBox, url)),
+        StringJsonObject(linkData.encrypt(secretBox)),
         BoolJsonObject(false),
       ];
       function_ += "add_secret";
     } else {
       arguments = [
-        StringJsonObject(urlForTransaction),
+        StringJsonObject(HexString.fromRegularString(url).noPrefix()),
         ListJsonObject(tags
             .map((e) => HexString.fromRegularString(e).noPrefix())
             .toList()),
@@ -218,7 +231,7 @@ class ListManager {
     var result = await signBuildWait(scriptFunctionPayloadBuilder);
 
     if (result.success) {
-      links![url] = LinkData(false, secret);
+      links![url] = LinkData(archived: false, secret: secret);
     }
 
     return result;
@@ -226,9 +239,6 @@ class ListManager {
 
   Future<TransactionResult> removeItem(
       String url, LinkData linkData, RemoveItemAction action) async {
-    String urlForTransaction =
-        getUrlForTransaction(sealedBox, url, linkData.secret);
-
     bool archiveArgument;
     String function_ = "${moduleAddress.withPrefix()}::$moduleName::";
 
@@ -247,8 +257,15 @@ class ListManager {
         break;
     }
 
+    String urlEncoded;
+    if (linkData.secret) {
+      urlEncoded = myEncryptWithSecretBox(secretBox, url);
+    } else {
+      urlEncoded = HexString.fromRegularString(url).noPrefix();
+    }
+
     List<JsonObject> arguments = [
-      StringJsonObject(urlForTransaction),
+      StringJsonObject(urlEncoded),
       BoolJsonObject(archiveArgument),
       BoolJsonObject(linkData.secret),
     ];
@@ -311,6 +328,15 @@ class ListManager {
       errorString = getErrorString(e);
     }
 
+    // This is a temporary thing to handle the case where the client says the
+    // call failed, but really it succeeded, and it's just that the API returns
+    // a struct with an illegally empty field according to the OpenAPI spec.
+    if (errorString != null &&
+        errorString.contains("mark \"handle\" with @nullable")) {
+      print("Skipping special OpenAPI thingo error: $errorString");
+      return TransactionResult(true, userTransactionBuilder.build(), null);
+    }
+
     return TransactionResult(
         committed, userTransactionBuilder.build(), errorString);
   }
@@ -318,8 +344,9 @@ class ListManager {
   // This assumes the private key is already set.
   factory ListManager.fromSharedPrefs() {
     AptosAccount aptosAccount;
+    HexString privateKey;
     try {
-      var privateKey = getPrivateKey()!;
+      privateKey = getPrivateKey()!;
       print("Private key from shared prefs: ${privateKey.withPrefix()}");
       aptosAccount = AptosAccount.fromPrivateKeyHexString(privateKey);
     } catch (e) {
@@ -328,10 +355,11 @@ class ListManager {
           "Failed to make ListManager from private key so we cleared shared prefs: $e");
       rethrow;
     }
-    AsymmetricPublicKey publicKey = VerifyKey(aptosAccount.pubKey().toBytes());
-    SealedBox sealedBox = SealedBox(publicKey);
-    return ListManager(aptosAccount, sealedBox);
+
+    SecretBox secretBox = SecretBox(privateKey.toBytes());
+
+    return ListManager(aptosAccount, secretBox);
   }
 
-  ListManager(this.aptosAccount, this.sealedBox);
+  ListManager(this.aptosAccount, this.secretBox);
 }
