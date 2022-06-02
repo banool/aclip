@@ -187,6 +187,7 @@ Future<bool> showChangeStringSharedPrefDialog(
   // TODO allow this function to take in something that changes the type
   // of text it is, e.g. for URL vs regular stuff.
   TextField textField = TextField(
+    key: ValueKey("myTextField"),
     controller: textController,
   );
   // ignore: deprecated_member_use
@@ -198,6 +199,7 @@ Future<bool> showChangeStringSharedPrefDialog(
   );
   // ignore: deprecated_member_use
   Widget continueButton = FlatButton(
+    key: ValueKey("continueButton"),
     child: Text(confirmText),
     onPressed: () async {
       String newValue = textController.text;

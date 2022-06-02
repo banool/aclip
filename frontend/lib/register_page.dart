@@ -60,6 +60,7 @@ class RegisterPageState extends State<RegisterPage> {
             ),
             Padding(padding: EdgeInsets.only(top: 20)),
             ElevatedButton(
+                key: ValueKey("enterPrivateKeyButton"),
                 onPressed: () async => await runUpdatePrivateKeyDialog(context),
                 child: Text(
                   "Enter private key",

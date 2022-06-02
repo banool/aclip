@@ -3,6 +3,7 @@ publish.env
 *.mobileprovision
 *.ipa
 *dSYM.zip
+fastlane/report.xml
 
 **/dgph
 *.mode1v3
