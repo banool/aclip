@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # Check which files / paths have changed.
+  # We use this to inform whether we should run later jobs.
+  changes:
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      move_module: ${{ steps.filter.outputs.move_module }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: '.github/filters.yml'
+    - name: Print changes
+      run: printf "Frontend changed $FRONTEND\nMove module changed $MOVE_MODULE\n"
+      env:
+        FRONTEND: ${{ steps.filter.outputs.frontend }}
+        MOVE_MODULE: ${{ steps.filter.outputs.move_module }}
+
+
+  # Run the move module tests.
+  test_move_module:
+    needs: [changes]
+    if: needs.changes.outputs.move_module == 'true'
+    defaults:
+      run:
+        working-directory: ./move
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - run: wget https://github.com/aptos-labs/aptos-core/releases/download/cli-latest/aptos-v0.1.0-linux-x86_64.zip -O cli.zip
+    - run: unzip cli.zip
+    - run: ./aptos move test
+  
+
+  # Publish the move module.
+  publish_move_module:
+    needs: [test_move_module]
+    if: needs.tests.outputs.move_module == 'true'
+    defaults:
+      run:
+        working-directory: ./move
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - run: wget https://github.com/aptos-labs/aptos-core/releases/download/aptos-cli-v0.1.1/aptos-cli-0.1.1-Ubuntu-x86_64.zip -O cli.zip
+    - run: unzip cli.zip
+    - run: yes "" | ./aptos init --assume-yes --private-key ${{ secrets.APTOS_ACCOUNT_PRIVATE_KEY }}
+    - run: ./aptos move publish
+    - run: wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+    - run: ./aptos move run --function-id "$(yq .profiles.default.account < .aptos/config.yaml)::$(cat move_module/sources/AptosInfiniteJukebox.move | grep -o -E 'JukeboxV\d+' | head -n 1)::initialize_jukebox" --max-gas 10000
+
+  # Update the web infrastructure if necessary. We always run this action so
+  # we have the outputs for later steps. 
+  update_web_infrastructure:
+    defaults:
+      run:
+        working-directory: ./deployment/web
+    outputs:
+      bucketUrl: ${{ steps.pulumi.outputs.bucketUrl }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v2
+      with:
+        node-version: 18.x
+    # TODO: Use WIF when gsutil supports it:
+    # https://github.com/GoogleCloudPlatform/gsutil/issues/1407
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v0'
+    - run: npm install
+    - uses: pulumi/actions@v3
+      id: pulumi
+      with:
+        command: up
+        stack-name: prod
+        work-dir: ./deployment/web
+      env:
+        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        GOOGLE_REGION: ${{ secrets.GCP_REGION }}
+
+
+  # Build / test web and push it.
+  push_web:
+    defaults:
+      run:
+        working-directory: ./frontend
+    needs: [update_web_infrastructure]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v0'
+    - uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '3.0.1'
+        channel: stable
+
+    # Initial build and test
+    - run: flutter pub get
+    - run: flutter test
+
+    # Build the web frontend
+    - run: flutter build web
+
+    # Copy the files into the GCP bucket.
+    - run: echo "${{ needs.update_web_infrastructure.outputs.bucketUrl }}"
+    - run: gsutil rsync -R build/web/ "${{ needs.update_web_infrastructure.outputs.bucketUrl }}"

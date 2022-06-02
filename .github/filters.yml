@@ -1,0 +1,17 @@
+# Taken from https://github.com/banool/team_heist_tactics/blob/master/.github/filters.yml
+force: &force
+  - ".force"
+
+ci: &ci
+  - ".github/**/*"
+
+frontend:
+  - *force
+  - 'frontend/lib/**'
+  - 'frontend/ios/**'
+  - 'frontend/android/**'
+  - 'frontend/web/**'
+
+move_module:
+  - *force
+  - 'move_module/**'
