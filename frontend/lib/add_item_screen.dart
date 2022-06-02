@@ -38,29 +38,7 @@ class AddItemScreenState extends State<AddItemScreen> {
   @override
   Widget build(BuildContext context) {
     if (addItemFuture != null) {
-      return FutureBuilder(
-          future: addItemFuture,
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        CircularProgressIndicator(),
-                        Padding(padding: EdgeInsets.only(left: 15)),
-                        Text(
-                          "Adding item...",
-                          style: TextStyle(fontSize: 18),
-                        )
-                      ]));
-            }
-            if (snapshot.hasError) {
-              return TransactionResultWidget(TransactionResult(
-                  false, null, getErrorString(snapshot.error!)));
-            }
-            return TransactionResultWidget(snapshot.data!);
-          });
+      return buildAddItemView(addItemFuture!);
     }
     TextFormField textField = TextFormField(
       controller: textController,
@@ -129,4 +107,30 @@ class AddItemScreenState extends State<AddItemScreen> {
               )
             ])));
   }
+}
+
+Widget buildAddItemView(Future addItemFuture) {
+  return FutureBuilder(
+      future: addItemFuture,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return Padding(
+              padding: EdgeInsets.all(20),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    CircularProgressIndicator(),
+                    Padding(padding: EdgeInsets.only(left: 15)),
+                    Text(
+                      "Adding item...",
+                      style: TextStyle(fontSize: 18),
+                    )
+                  ]));
+        }
+        if (snapshot.hasError) {
+          return TransactionResultWidget(
+              TransactionResult(false, null, getErrorString(snapshot.error!)));
+        }
+        return TransactionResultWidget(snapshot.data!);
+      });
 }

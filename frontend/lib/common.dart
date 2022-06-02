@@ -39,9 +39,10 @@ Future<void> showErrorInDialog(BuildContext context, Object error) async {
   await myShowDialog(context, Text(getErrorString(error)));
 }
 
-Future<void> myShowDialog(BuildContext context, Widget body) async {
+Future<void> myShowDialog(BuildContext context, Widget body,
+    {String title = "Error"}) async {
   AlertDialog alert = AlertDialog(
-    title: Text("Error"),
+    title: Text(title),
     content: body,
   );
   await showDialog(

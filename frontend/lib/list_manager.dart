@@ -79,8 +79,14 @@ class LinkData {
 }
 
 class ListManager {
-  final AptosClientHelper aptosClientHelper = AptosClientHelper.fromBaseUrl(
-      sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl);
+  final AptosClientHelper aptosClientHelper =
+      AptosClientHelper.fromDio(Dio(BaseOptions(
+    baseUrl:
+        sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl,
+    connectTimeout: 8000,
+    receiveTimeout: 8000,
+    sendTimeout: 8000,
+  )));
   final AptosAccount aptosAccount;
 
   // For encrypting and decrypting secrets we write to the chain.
@@ -358,6 +364,7 @@ class ListManager {
 
     SecretBox secretBox = SecretBox(privateKey.toBytes());
 
+    listManagerSet = true;
     return ListManager(aptosAccount, secretBox);
   }
 

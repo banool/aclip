@@ -5,3 +5,5 @@ import 'package:shared_preferences/shared_preferences.dart';
 late SharedPreferences sharedPreferences;
 late PackageInfo packageInfo;
 late ListManager listManager;
+
+bool listManagerSet = false;

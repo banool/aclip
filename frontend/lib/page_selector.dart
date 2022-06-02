@@ -1,6 +1,11 @@
+import 'dart:async';
+
+import 'package:aclip/add_item_screen.dart';
+import 'package:aclip/common.dart';
 import 'package:aclip/globals.dart';
 import 'package:aclip/list_page_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import 'constants.dart';
 import 'settings_page.dart';
@@ -16,9 +21,45 @@ class PageSelectorState extends State<PageSelector> {
   late PageSelectorController pageSelectorController;
   ValueKey childKey = ValueKey(0);
 
+  // ignore: unused_field
+  late StreamSubscription _intentDataStreamSubscription;
+
+  Future<void> handleShareUrl(Uri value) async {
+    if (!listManagerSet) {
+      await myShowDialog(
+          context, Text("You must setup aclip before adding links."),
+          title: "Setup incomplete");
+      return;
+    }
+    bool makeEncrypted =
+        sharedPreferences.getBool(keySecretByDefault) ?? defaultSecretByDefault;
+    Future? addItemFuture = listManager.addItem(
+        value.toString().trim().replaceAll("\n", " "), makeEncrypted, []);
+    await myShowDialog(context, buildAddItemView(addItemFuture),
+        title: "Adding item...");
+    refresh();
+  }
+
   @override
   void initState() {
     pageSelectorController = PageSelectorController(refresh);
+
+    // For sharing or opening urls/text coming from outside the app while the app is in the memory
+    _intentDataStreamSubscription =
+        ReceiveSharingIntent.getTextStreamAsUri().listen((Uri value) async {
+      await handleShareUrl(value);
+    }, onError: (err) async {
+      await showErrorInDialog(context, err);
+    });
+
+    // For sharing or opening urls/text coming from outside the app while the app is closed
+    ReceiveSharingIntent.getInitialTextAsUri().then((Uri? value) async {
+      if (value == null) {
+        return;
+      }
+      await handleShareUrl(value);
+    });
+
     super.initState();
   }
 

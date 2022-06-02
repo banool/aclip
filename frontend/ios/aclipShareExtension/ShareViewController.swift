@@ -8,7 +8,7 @@ class ShareViewController: SLComposeServiceViewController {
     var appGroupId = ""
     let sharedKey = "ShareKey"
     var sharedText: [String] = []
-    let urlContentType = kUTTypeURL as String
+    let urlContentType = UTType.url.identifier as String
 
     override func isContentValid() -> Bool {
         return true
@@ -38,7 +38,7 @@ class ShareViewController: SLComposeServiceViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
+        
         // This is called after the user selects Post. Do the upload of contentText and/or NSExtensionContext attachments.
         if let content = extensionContext!.inputItems[0] as? NSExtensionItem {
             if let contents = content.attachments {
@@ -56,12 +56,11 @@ class ShareViewController: SLComposeServiceViewController {
     }
 
     override func configurationItems() -> [Any]! {
-        // To add configuration options via table cells at the bottom of the sheet, return an array of SLComposeSheetConfigurationItem here.
         return []
     }
 
 
-    private func handleUrl (content: NSExtensionItem, attachment: NSItemProvider, index: Int) {
+    private func handleUrl(content: NSExtensionItem, attachment: NSItemProvider, index: Int) {
         attachment.loadItem(forTypeIdentifier: urlContentType, options: nil) { [weak self] data, error in
 
             if error == nil, let item = data as? URL, let this = self {
