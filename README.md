@@ -1,6 +1,6 @@
 # aclip
 
-This project is made up of three major components:
+This project is made up of two major components:
 - `frontend`: This is the frontend for the project, made with Flutter. todo
 - `move`: This is where the core logic lives, on the [Aptos Blockchain](https://aptoslabs.com). todo
 
