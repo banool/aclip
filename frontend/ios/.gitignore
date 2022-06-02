@@ -1,3 +1,9 @@
+publish.env
+*.cer
+*.mobileprovision
+*.ipa
+*dSYM.zip
+
 **/dgph
 *.mode1v3
 *.mode2v3

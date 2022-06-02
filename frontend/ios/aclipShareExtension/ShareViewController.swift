@@ -4,7 +4,7 @@ import MobileCoreServices
 import Photos
 
 class ShareViewController: SLComposeServiceViewController {
-    var hostAppBundleIdentifier = ""
+    var hostAppBundleIdentifier = "com.banool.aclip"
     var appGroupId = ""
     let sharedKey = "ShareKey"
     var sharedText: [String] = []
