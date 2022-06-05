@@ -2,6 +2,7 @@ import 'package:aclip/page_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'ffi.dart';
 import 'settings_page.dart';
 
 const double fontSizeLarge = 24;
@@ -27,6 +28,14 @@ class RegisterPageState extends State<RegisterPage> {
               style: TextStyle(
                   fontSize: fontSizeLarge, fontWeight: FontWeight.w700),
             ),
+            FutureBuilder(
+                future: api.platform(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return CircularProgressIndicator();
+                  }
+                  return Text("Platform: ${snapshot.data}");
+                }),
             Padding(padding: EdgeInsets.only(top: 30)),
             Text(
               "aclip is a bookmarking app powered by the Aptos Blockchain. "

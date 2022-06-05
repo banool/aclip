@@ -12,6 +12,8 @@
 		63645B2E284849B10026AC54 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63645B2D284849B10026AC54 /* ShareViewController.swift */; };
 		63645B31284849B10026AC54 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 63645B2F284849B10026AC54 /* MainInterface.storyboard */; };
 		63645B35284849B10026AC54 /* aclipShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 63645B2B284849B10026AC54 /* aclipShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		63DF4B8B284D318F00820288 /* libnative_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 63DF4B88284D315700820288 /* libnative_static.a */; };
+		63DF4B8F284D329C00820288 /* bridge_generated.h in Resources */ = {isa = PBXBuildFile; fileRef = 63DF4B8D284D328900820288 /* bridge_generated.h */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		904AEB6BC5FE9C88BC9935BE /* Pods_aclipShareExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AC94BCE60653DA02BE9D941 /* Pods_aclipShareExtension.framework */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -27,6 +29,27 @@
 			proxyType = 1;
 			remoteGlobalIDString = 63645B2A284849B10026AC54;
 			remoteInfo = aclipShareExtension;
+		};
+		63DF4B85284D315700820288 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 63DF4B80284D315700820288 /* native.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = CA6044B09E9EEAC3B2E0A336;
+			remoteInfo = "native-cdylib";
+		};
+		63DF4B87284D315700820288 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 63DF4B80284D315700820288 /* native.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = CA606DA69AEB2969E816930C;
+			remoteInfo = "native-staticlib";
+		};
+		63DF4B89284D317600820288 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 63DF4B80284D315700820288 /* native.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = CA606DA69AEB88086759C3B4;
+			remoteInfo = "native-staticlib";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -68,6 +91,8 @@
 		63645B32284849B10026AC54 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		63645B3B28484AF30026AC54 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		63645B3C28484AF90026AC54 /* aclipShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = aclipShareExtension.entitlements; sourceTree = "<group>"; };
+		63DF4B80284D315700820288 /* native.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = native.xcodeproj; path = ../../native/native.xcodeproj; sourceTree = "<group>"; };
+		63DF4B8D284D328900820288 /* bridge_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bridge_generated.h; path = Runner/bridge_generated.h; sourceTree = "<group>"; };
 		6E64589E9BAA02A60D9C97AA /* Pods-aclipShareExtension.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-aclipShareExtension.profile.xcconfig"; path = "Target Support Files/Pods-aclipShareExtension/Pods-aclipShareExtension.profile.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -97,6 +122,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63DF4B8B284D318F00820288 /* libnative_static.a in Frameworks */,
 				CAA0CEB7C4F19C80DEE450A0 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -113,6 +139,15 @@
 				63645B32284849B10026AC54 /* Info.plist */,
 			);
 			path = aclipShareExtension;
+			sourceTree = "<group>";
+		};
+		63DF4B81284D315700820288 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				63DF4B86284D315700820288 /* native.dylib */,
+				63DF4B88284D315700820288 /* libnative_static.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		88F4CD093E5CAA5870C8E871 /* Pods */ = {
@@ -151,6 +186,7 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
+				63DF4B8D284D328900820288 /* bridge_generated.h */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				63645B2C284849B10026AC54 /* aclipShareExtension */,
@@ -172,6 +208,7 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				63DF4B80284D315700820288 /* native.xcodeproj */,
 				63645B3B28484AF30026AC54 /* Runner.entitlements */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
@@ -223,6 +260,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				63DF4B8A284D317600820288 /* PBXTargetDependency */,
 				63645B34284849B10026AC54 /* PBXTargetDependency */,
 			);
 			name = Runner;
@@ -260,6 +298,12 @@
 			mainGroup = 97C146E51CF9000F007C117D;
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 63DF4B81284D315700820288 /* Products */;
+					ProjectRef = 63DF4B80284D315700820288 /* native.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
@@ -267,6 +311,23 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		63DF4B86284D315700820288 /* native.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = native.dylib;
+			remoteRef = 63DF4B85284D315700820288 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		63DF4B88284D315700820288 /* libnative_static.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libnative_static.a;
+			remoteRef = 63DF4B87284D315700820288 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		63645B29284849B10026AC54 /* Resources */ = {
@@ -285,6 +346,7 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				63DF4B8F284D329C00820288 /* bridge_generated.h in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,6 +469,11 @@
 			isa = PBXTargetDependency;
 			target = 63645B2A284849B10026AC54 /* aclipShareExtension */;
 			targetProxy = 63645B33284849B10026AC54 /* PBXContainerItemProxy */;
+		};
+		63DF4B8A284D317600820288 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "native-staticlib";
+			targetProxy = 63DF4B89284D317600820288 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
