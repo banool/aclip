@@ -4,11 +4,11 @@ import 'dart:convert';
 import 'package:aclip/common.dart';
 import 'package:aclip/constants.dart';
 import 'package:aclip/globals.dart';
-import 'package:aclip/page_downloader.dart';
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/json_object.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:one_of/one_of.dart';
 import 'package:pinenacl/tweetnacl.dart';
 import 'package:pinenacl/x25519.dart';
@@ -147,8 +147,10 @@ class ListManager {
     try {
       links = await fetchData();
       print("Updated links: $links");
-      for (var url in links!.keys) {
-        downloadManager.triggerDownload(url);
+      if (!kIsWeb) {
+        for (var url in links!.keys) {
+          downloadManager.triggerDownload(url);
+        }
       }
     } on DioError catch (e) {
       print(getErrorString(e));

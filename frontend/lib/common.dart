@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:aclip/constants.dart';
 import 'package:aclip/globals.dart';
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
@@ -51,4 +53,13 @@ Future<void> myShowDialog(BuildContext context, Widget body,
       return alert;
     },
   );
+}
+
+Future<bool> canConnectToInternet() async {
+  try {
+    final result = await InternetAddress.lookup('example.com');
+    return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+  } on SocketException catch (_) {
+    return false;
+  }
 }

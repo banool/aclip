@@ -11,7 +11,7 @@ import 'package:html/parser.dart' show parse;
 import 'ffi.dart';
 
 // TODO: Make this configurable.
-const int CACHE_TTL_SECS = 60 * 60 * 24 * 31;
+const int cacheTtlSecs = 60 * 60 * 24 * 31;
 
 Options getOptionsFromSharedPrefs(String targetUrl, String outputPath) {
   bool insecure =
@@ -103,7 +103,7 @@ class DownloadMetadata {
     if (unixtimeDownloadedSecs == null) return null;
 
     if (unixtimeDownloadedSecs <
-        (DateTime.now().millisecondsSinceEpoch ~/ 1000) - CACHE_TTL_SECS) {
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000) - cacheTtlSecs) {
       print(
           "Found file and metadata for $url, but it is too old, returning no metadata");
       return null;
