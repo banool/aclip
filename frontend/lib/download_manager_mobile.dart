@@ -12,6 +12,7 @@ import 'ffi.dart';
 // TODO: Make this configurable.
 const int cacheTtlSecs = 60 * 60 * 24 * 31;
 
+// TODO: Add support for using different user agents based on the platform.
 Options getOptionsFromSharedPrefs(String targetUrl, String outputPath) {
   bool insecure =
       !(sharedPreferences.getBool(keyForceHttpsOnly) ?? defaultForceHttpsOnly);
@@ -184,7 +185,40 @@ class DownloadManager {
     return false;
   }
 
+  // Remove every file from storage unless we are aware of it and it has not
+  // exceeded its cache TTL.
+  Future<void> removeExpiredFiles({bool forceAll = false}) async {
+    final List<FileSystemEntity> entities =
+        await Directory(downloadsDirectory).list().toList();
+    final Map<String, String> fileNameToPath = {};
+
+    for (var entity in entities) {
+      var fileName = entity.path.split("/").last;
+      fileNameToPath[fileName] = entity.path;
+    }
+
+    Set<String> toRemove = fileNameToPath.keys.toSet();
+
+    // ignore: avoid_function_literals_in_foreach_calls
+    if (!forceAll) {
+      urlToDownload.entries.forEach((element) async {
+        var url = element.key;
+        var metadata = await element.value;
+        if (metadata.unixtimeDownloadedSecs >
+            (DateTime.now().millisecondsSinceEpoch ~/ 1000) - cacheTtlSecs) {
+          toRemove.remove(getFileNameFromUrl(url));
+        }
+      });
+    }
+
+    for (String filename in toRemove) {
+      await File(fileNameToPath[filename]!).delete();
+      print("Deleted $filename");
+    }
+  }
+
   Future<void> clearCache() async {
+    await removeExpiredFiles(forceAll: true);
     // ignore: avoid_function_literals_in_foreach_calls
     urlToDownload.entries.forEach((element) async {
       var m = await element.value;

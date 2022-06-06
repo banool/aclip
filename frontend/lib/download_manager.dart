@@ -10,9 +10,6 @@ import 'package:html/parser.dart';
 export 'download_manager_mobile.dart'
     if (dart.library.html) 'download_manager_web.dart';
 
-import 'download_manager_mobile.dart'
-    if (dart.library.html) 'download_manager_web.dart' show DownloadMetadata;
-
 String getFileNameFromUrl(String url) {
   return md5.convert(utf8.encode(url)).toString();
 }
