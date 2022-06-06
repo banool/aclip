@@ -18,6 +18,21 @@ use flutter_rust_bridge::*;
 // Section: wire functions
 
 #[no_mangle]
+pub extern "C" fn wire_download_page(port_: i64, options: *mut wire_Options) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "download_page",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_options = options.wire2api();
+            move |task_callback| download_page(api_options)
+        },
+    )
+}
+
+#[no_mangle]
 pub extern "C" fn wire_platform(port_: i64) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap(
         WrapInfo {
@@ -43,11 +58,57 @@ pub extern "C" fn wire_rust_release_mode(port_: i64) {
 
 // Section: wire structs
 
+#[repr(C)]
+#[derive(Clone)]
+pub struct wire_Options {
+    no_audio: bool,
+    base_url: *mut wire_uint_8_list,
+    no_css: bool,
+    charset: *mut wire_uint_8_list,
+    ignore_errors: bool,
+    no_frames: bool,
+    no_fonts: bool,
+    no_images: bool,
+    isolate: bool,
+    no_js: bool,
+    insecure: bool,
+    no_metadata: bool,
+    output: *mut wire_uint_8_list,
+    silent: bool,
+    timeout: u64,
+    user_agent: *mut wire_uint_8_list,
+    no_video: bool,
+    target: *mut wire_uint_8_list,
+    no_color: bool,
+    unwrap_noscript: bool,
+}
+
+#[repr(C)]
+#[derive(Clone)]
+pub struct wire_uint_8_list {
+    ptr: *mut u8,
+    len: i32,
+}
+
 // Section: wrapper structs
 
 // Section: static checks
 
 // Section: allocate functions
+
+#[no_mangle]
+pub extern "C" fn new_box_autoadd_options() -> *mut wire_Options {
+    support::new_leak_box_ptr(wire_Options::new_with_null_ptr())
+}
+
+#[no_mangle]
+pub extern "C" fn new_uint_8_list(len: i32) -> *mut wire_uint_8_list {
+    let ans = wire_uint_8_list {
+        ptr: support::new_leak_vec_ptr(Default::default(), len),
+        len,
+    };
+    support::new_leak_box_ptr(ans)
+}
 
 // Section: impl Wire2Api
 
@@ -68,6 +129,74 @@ where
     }
 }
 
+impl Wire2Api<String> for *mut wire_uint_8_list {
+    fn wire2api(self) -> String {
+        let vec: Vec<u8> = self.wire2api();
+        String::from_utf8_lossy(&vec).into_owned()
+    }
+}
+
+impl Wire2Api<bool> for bool {
+    fn wire2api(self) -> bool {
+        self
+    }
+}
+
+impl Wire2Api<Options> for *mut wire_Options {
+    fn wire2api(self) -> Options {
+        let wrap = unsafe { support::box_from_leak_ptr(self) };
+        (*wrap).wire2api().into()
+    }
+}
+
+impl Wire2Api<Options> for wire_Options {
+    fn wire2api(self) -> Options {
+        Options {
+            no_audio: self.no_audio.wire2api(),
+            base_url: self.base_url.wire2api(),
+            no_css: self.no_css.wire2api(),
+            charset: self.charset.wire2api(),
+            ignore_errors: self.ignore_errors.wire2api(),
+            no_frames: self.no_frames.wire2api(),
+            no_fonts: self.no_fonts.wire2api(),
+            no_images: self.no_images.wire2api(),
+            isolate: self.isolate.wire2api(),
+            no_js: self.no_js.wire2api(),
+            insecure: self.insecure.wire2api(),
+            no_metadata: self.no_metadata.wire2api(),
+            output: self.output.wire2api(),
+            silent: self.silent.wire2api(),
+            timeout: self.timeout.wire2api(),
+            user_agent: self.user_agent.wire2api(),
+            no_video: self.no_video.wire2api(),
+            target: self.target.wire2api(),
+            no_color: self.no_color.wire2api(),
+            unwrap_noscript: self.unwrap_noscript.wire2api(),
+        }
+    }
+}
+
+impl Wire2Api<u64> for u64 {
+    fn wire2api(self) -> u64 {
+        self
+    }
+}
+
+impl Wire2Api<u8> for u8 {
+    fn wire2api(self) -> u8 {
+        self
+    }
+}
+
+impl Wire2Api<Vec<u8>> for *mut wire_uint_8_list {
+    fn wire2api(self) -> Vec<u8> {
+        unsafe {
+            let wrap = support::box_from_leak_ptr(self);
+            support::vec_from_leak_ptr(wrap.ptr, wrap.len)
+        }
+    }
+}
+
 // Section: impl NewWithNullPtr
 
 pub trait NewWithNullPtr {
@@ -77,6 +206,33 @@ pub trait NewWithNullPtr {
 impl<T> NewWithNullPtr for *mut T {
     fn new_with_null_ptr() -> Self {
         std::ptr::null_mut()
+    }
+}
+
+impl NewWithNullPtr for wire_Options {
+    fn new_with_null_ptr() -> Self {
+        Self {
+            no_audio: Default::default(),
+            base_url: core::ptr::null_mut(),
+            no_css: Default::default(),
+            charset: core::ptr::null_mut(),
+            ignore_errors: Default::default(),
+            no_frames: Default::default(),
+            no_fonts: Default::default(),
+            no_images: Default::default(),
+            isolate: Default::default(),
+            no_js: Default::default(),
+            insecure: Default::default(),
+            no_metadata: Default::default(),
+            output: core::ptr::null_mut(),
+            silent: Default::default(),
+            timeout: Default::default(),
+            user_agent: core::ptr::null_mut(),
+            no_video: Default::default(),
+            target: core::ptr::null_mut(),
+            no_color: Default::default(),
+            unwrap_noscript: Default::default(),
+        }
     }
 }
 

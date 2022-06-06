@@ -15,9 +15,11 @@ const String keyAptosNodeUrl = "keyAptosNodeUrl";
 const String keyPrivateKey = "keyPrivateKey";
 const String keySecretByDefault = "keySecretByDefault";
 const String keyLaunchInExternalBrowser = "keyLaunchInExternalBrowser";
+const String keyForceHttpsOnly = "keyForceHttpsOnly";
 
 // Shared preferences defaults.
 const String defaultAptosNodeUrl = "https://fullnode.devnet.aptoslabs.com";
 const String? defaultPrivateKey = null;
 const bool defaultSecretByDefault = true;
 const bool defaultLaunchInExternalBrowser = true;
+const bool defaultForceHttpsOnly = false;

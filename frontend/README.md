@@ -20,7 +20,7 @@ ANDROID_NDK=/Users/dport/Library/Android/sdk/ndk-bundle
 To generate the bindings afresh after you update your code, run `just`. You might also want to run these first:
 ```
 cd native
-cargo build
+cargo build --release
 cargo xcode
 ```
 

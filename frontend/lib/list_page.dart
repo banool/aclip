@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:aclip/constants.dart';
 import 'package:aclip/globals.dart';
 import 'package:aclip/page_selector.dart';
@@ -10,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'add_item_screen.dart';
 import 'common.dart';
 import 'list_manager.dart';
+import 'page_downloader.dart';
 import 'transaction_result_widget.dart';
 
 class ListPage extends StatefulWidget {
@@ -131,9 +130,57 @@ class ListPageState extends State<ListPage> {
     // TODO: Make the title the title of the article.
     // TODO: Make the subtitle the website name.
     // TODO: Make the trailing item an image from the article.
-    String title = url;
-    String subtitle = url;
-    Widget trailing = Container();
+
+    Widget title = FutureBuilder(
+        future: downloadManager.urlToDownload[url]!,
+        builder:
+            (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Text(url);
+          }
+          if (snapshot.hasError) {
+            return Text(url);
+          }
+          return Text(snapshot.data!.pageTitle);
+        });
+
+    String subtitleSuffix = Uri.tryParse(url)?.host ?? url;
+
+    Widget downloadingIndicator = FutureBuilder(
+        future: downloadManager.urlToDownload[url]!,
+        builder:
+            (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return CircularProgressIndicator();
+          }
+          if (snapshot.hasError) {
+            return IconButton(
+              icon: Icon(Icons.error),
+              onPressed: () => downloadManager.triggerDownload(url),
+            );
+          }
+          return Icon(Icons.done);
+        });
+
+    Widget subtitle = Row(
+      children: [downloadingIndicator, Text(subtitleSuffix)],
+    );
+
+    Widget trailing = FutureBuilder(
+        future: downloadManager.urlToDownload[url]!,
+        builder:
+            (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Container();
+          }
+          if (snapshot.hasError) {
+            return Container();
+          }
+          if (snapshot.data!.imageProvider == null) {
+            return Container();
+          }
+          return Image(image: snapshot.data!.imageProvider!);
+        });
     LaunchMode launchMode;
     if (sharedPreferences.getBool(keyLaunchInExternalBrowser) ??
         defaultLaunchInExternalBrowser) {
@@ -175,8 +222,8 @@ class ListPageState extends State<ListPage> {
                   )
                 ]),
             child: ListTile(
-              title: Text(title),
-              subtitle: Text(subtitle),
+              title: title,
+              subtitle: subtitle,
               //trailing: trailing,
               onTap: () => launchUrl(
                 Uri.parse(url),

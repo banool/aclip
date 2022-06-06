@@ -3,7 +3,7 @@ description: Bookmarks, powered by Aptos
 
 publish_to: 'none'
 
-version: 1.0.28+29
+version: 1.0.31+32
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
@@ -13,18 +13,21 @@ dependencies:
   aptos_sdk_dart: ^0.3.0
   built_collection:
   built_value:
+  crypto:
   dio:
   flutter:
     sdk: flutter
   flutter_slidable:
   flutter_rust_bridge:
+  html:
   one_of: ^1.5.0
+  package_info_plus:
+  path_provider:
   pinenacl:
   receive_sharing_intent:
   settings_ui:
   shared_preferences:
   url_launcher:
-  package_info_plus:
 
 dev_dependencies:
   device_info_plus:
