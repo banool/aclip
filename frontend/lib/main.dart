@@ -53,11 +53,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: appTitle,
       debugShowCheckedModeBanner: false,
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+      ),
       theme: ThemeData(
         primarySwatch: mainColor as MaterialColor,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: "Raleway",
       ),
+      themeMode: ThemeMode.system,
       home: const PageSelector(),
     );
   }

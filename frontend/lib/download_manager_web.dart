@@ -56,6 +56,11 @@ class DownloadManager {
     }
     return false;
   }
+
+  Future<void> clearCache() async {
+    urlToDownload.clear();
+    urlToDownloadStatus.clear();
+  }
 }
 
 String getFilePathFromUrl(String url) {

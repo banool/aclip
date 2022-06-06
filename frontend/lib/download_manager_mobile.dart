@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:aclip/constants.dart';
 import 'package:aclip/globals.dart';
 import 'package:flutter/material.dart';
-import 'package:html/parser.dart' show parse;
 
 import 'download_manager.dart';
 import 'ffi.dart';
@@ -73,7 +72,16 @@ extension StorageStuff on DownloadMetadata {
       await sharedPreferences.setString(
           getImageBase64Key(fileNameFromUrl), imageBase64!);
     }
-    print("Wrote metadata to storage");
+    print("Wrote metadata to storage for $url");
+  }
+
+  Future<void> wipeFromStorage(String url) async {
+    var fileNameFromUrl = getFileNameFromUrl(url);
+    await sharedPreferences.remove(getPageTitleKey(fileNameFromUrl));
+    await sharedPreferences
+        .remove(getUnixtimeDownloadedSecsKey(fileNameFromUrl));
+    await sharedPreferences.remove(getImageBase64Key(fileNameFromUrl));
+    print("Cleared metadata from storage for $url");
   }
 
   static Future<DownloadMetadata?> readFromStorage(String url) async {
@@ -154,7 +162,8 @@ class DownloadManager {
     }
 
     // Pull the metadata.
-    var metadata = await mobileGetMetadata(url, outputPath);
+    String content = await File(outputPath).readAsString();
+    var metadata = await getMetadata(url, content);
 
     // Update the stored metadata.
     await metadata.writeToStorage(url);
@@ -175,12 +184,14 @@ class DownloadManager {
     return false;
   }
 
-  Future<DownloadMetadata> mobileGetMetadata(
-      String url, String downloadedPath) async {
-    String content = await File(downloadedPath).readAsString();
-    return getMetadata(content, downloadedPath);
+  Future<void> clearCache() async {
+    // ignore: avoid_function_literals_in_foreach_calls
+    urlToDownload.entries.forEach((element) async {
+      var m = await element.value;
+      await m.wipeFromStorage(element.key);
+    });
+    urlToDownload.clear();
+    urlToDownloadStatus.clear();
+    print("Cleared cache");
   }
-
-  Future<void> writeDownloadMetadataToStorage(
-      String url, DownloadMetadata metadata) async {}
 }

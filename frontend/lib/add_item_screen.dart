@@ -87,7 +87,7 @@ class AddItemScreenState extends State<AddItemScreen> {
                         triggerAddItem();
                       }
                     },
-                    child: const Text('Add'),
+                    child: const Text("Add"),
                   ),
                   Spacer(flex: 2),
                   Expanded(
@@ -130,6 +130,11 @@ Widget buildAddItemView(Future addItemFuture) {
         if (snapshot.hasError) {
           return TransactionResultWidget(
               TransactionResult(false, null, getErrorString(snapshot.error!)));
+        }
+        if (!(sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
+            defaultShowTransactionSuccessPage)) {
+          Navigator.pop(context);
+          return Container();
         }
         return TransactionResultWidget(snapshot.data!);
       });

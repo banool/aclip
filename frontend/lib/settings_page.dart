@@ -1,6 +1,7 @@
 import 'package:aclip/list_manager.dart';
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,20 +26,51 @@ class SettingsPageState extends State<SettingsPage> {
         start: 15, end: 15, top: 10, bottom: 10);
 
     List<AbstractSettingsSection?> sections = [
-      SettingsSection(
-        title: Text('App Settings'),
-        tiles: [
-          SettingsTile.switchTile(
-            initialValue: sharedPreferences.getBool(keySecretByDefault) ??
-                defaultSecretByDefault,
-            title: getText(
-              "Encrypt items by default",
-            ),
-            onToggle: (bool enabled) async {
-              await sharedPreferences.setBool(keySecretByDefault, enabled);
-              setState(() {});
-            },
+      SettingsSection(title: Text('Account'), tiles: [
+        SettingsTile.switchTile(
+          initialValue: sharedPreferences.getBool(keySecretByDefault) ??
+              defaultSecretByDefault,
+          title: getText(
+            "Encrypt items by default",
           ),
+          onToggle: (bool enabled) async {
+            await sharedPreferences.setBool(keySecretByDefault, enabled);
+            setState(() {});
+          },
+        ),
+        SettingsTile.switchTile(
+          initialValue:
+              sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
+                  defaultShowTransactionSuccessPage,
+          title: getText(
+            "Show transaction output on success",
+          ),
+          onToggle: (bool enabled) async {
+            await sharedPreferences.setBool(
+                keyShowTransactionSuccessPage, enabled);
+            setState(() {});
+          },
+        ),
+        SettingsTile.navigation(
+            title: getText(
+              "Reset everything",
+            ),
+            trailing: Container(),
+            onPressed: (BuildContext context) async {
+              bool confirmed = await confirmAlert(
+                  context,
+                  Text("This will remove your list from your account, even if "
+                      "there are items in it, and delete all local data. Are you sure?"));
+              if (confirmed) {
+                await sharedPreferences.clear();
+                listManager = ListManager.fromSharedPrefs();
+                print("Reset everything");
+              }
+            }),
+      ]),
+      SettingsSection(
+        title: Text('Links'),
+        tiles: [
           SettingsTile.switchTile(
             initialValue:
                 sharedPreferences.getBool(keyLaunchInExternalBrowser) ??
@@ -54,16 +86,12 @@ class SettingsPageState extends State<SettingsPage> {
           ),
           SettingsTile.navigation(
               title: getText(
-                "Delete everything",
+                "Clear cache",
               ),
               trailing: Container(),
               onPressed: (BuildContext context) async {
-                await listManager.obliterateList();
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text("Deleted everything"),
-                ));
-                listManager = ListManager.fromSharedPrefs();
-                setState(() {});
+                await downloadManager.clearCache();
+                await listManager.pull();
               }),
           SettingsTile.navigation(
               title: getText(
@@ -77,24 +105,11 @@ class SettingsPageState extends State<SettingsPage> {
                       builder: (context) => DownloadLogsPage(),
                     ));
               }),
-          SettingsTile.switchTile(
-            initialValue:
-                sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
-                    defaultShowTransactionSuccessPage,
-            title: getText(
-              "Show transaction output on success",
-            ),
-            onToggle: (bool enabled) async {
-              await sharedPreferences.setBool(
-                  keyShowTransactionSuccessPage, enabled);
-              setState(() {});
-            },
-          ),
         ],
         margin: margin,
       ),
       SettingsSection(
-        title: Text('Aptos Connection Settings'),
+        title: Text('Connection'),
         tiles: [
           SettingsTile.navigation(
               title: getText(
@@ -137,7 +152,7 @@ class SettingsPageState extends State<SettingsPage> {
         margin: margin,
       ),
       SettingsSection(
-        title: const Text('App Detail'),
+        title: const Text('Details'),
         tiles: [
           SettingsTile.navigation(
             title: getText(
@@ -242,6 +257,12 @@ Future<bool> showChangeStringSharedPrefDialog(
     title: Row(children: [
       Text(title),
       Spacer(),
+      IconButton(
+          onPressed: () async {
+            var data = await Clipboard.getData(Clipboard.kTextPlain);
+            textController.text = data?.text ?? "";
+          },
+          icon: Icon(Icons.paste)),
       IconButton(
           onPressed: () {
             textController.text = defaultValue ?? "";
@@ -373,4 +394,39 @@ class BuildInformationPage extends StatelessWidget {
     return buildTopLevelScaffold(context, body,
         title: "Build Information", isSubPage: true);
   }
+}
+
+Future<bool> confirmAlert(BuildContext context, Widget content,
+    {String title = "Careful!",
+    String cancelText = "Cancel",
+    String confirmText = "Confirm"}) async {
+  bool confirmed = false;
+  Widget cancelButton = ElevatedButton(
+    child: Text(cancelText),
+    onPressed: () {
+      Navigator.of(context).pop();
+    },
+  );
+  Widget continueButton = ElevatedButton(
+    child: Text(confirmText),
+    onPressed: () {
+      confirmed = true;
+      Navigator.of(context).pop();
+    },
+  );
+  AlertDialog alert = AlertDialog(
+    title: Text(title),
+    content: content,
+    actions: [
+      cancelButton,
+      continueButton,
+    ],
+  );
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  );
+  return confirmed;
 }

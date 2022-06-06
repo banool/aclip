@@ -54,8 +54,11 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
           return FractionallySizedBox(
               heightFactor: 0.85, child: AddItemScreen());
         });
+    // TODO: I shouldn't need this, it seems like the API doesn't offer
+    // read what you write?
+    await Future.delayed(Duration(milliseconds: 100));
     await listManager.pull();
-    setState(() {});
+    updateLinksKeys();
   }
 
   Future<TransactionResult> removeItem(BuildContext context, String url,
@@ -144,7 +147,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
       child: listView,
       onRefresh: () async {
         await listManager.pull();
-        setState(() {});
+        updateLinksKeys();
       },
       displacement: 2,
     );
@@ -180,7 +183,6 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
   }
 
   Widget buildListItem(String url, LinkData linkData) {
-    print(downloadManager.urlToDownload);
     Widget title = FutureBuilder(
         future: downloadManager.urlToDownload[url]!,
         builder:
@@ -233,7 +235,11 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
         });
 
     Widget subtitle = Row(
-      children: [Text(subtitleSuffix), downloadingIndicator],
+      children: [
+        Text(subtitleSuffix),
+        Padding(padding: EdgeInsets.only(left: 5)),
+        downloadingIndicator
+      ],
     );
 
     Widget trailing = FutureBuilder(
