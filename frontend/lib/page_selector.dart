@@ -153,7 +153,8 @@ Scaffold buildTopLevelScaffold(BuildContext context, Widget body,
     String? title,
     bool isSubPage = false,
     List<Widget>? appBarActions,
-    Widget? leadingAppBarButton}) {
+    Widget? leadingAppBarButton,
+    BottomAppBar? customBottomAppBar}) {
   AppBar? appBar;
   if (title != null) {
     appBar = AppBar(
@@ -182,6 +183,6 @@ Scaffold buildTopLevelScaffold(BuildContext context, Widget body,
     body: body,
     appBar: appBar,
     floatingActionButton: floatingActionButton,
-    bottomNavigationBar: bottomNavigationBar,
+    bottomNavigationBar: customBottomAppBar ?? bottomNavigationBar,
   );
 }
