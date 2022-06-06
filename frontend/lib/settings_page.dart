@@ -26,48 +26,53 @@ class SettingsPageState extends State<SettingsPage> {
         start: 15, end: 15, top: 10, bottom: 10);
 
     List<AbstractSettingsSection?> sections = [
-      SettingsSection(title: Text('Account'), tiles: [
-        SettingsTile.switchTile(
-          initialValue: sharedPreferences.getBool(keySecretByDefault) ??
-              defaultSecretByDefault,
-          title: getText(
-            "Encrypt items by default",
-          ),
-          onToggle: (bool enabled) async {
-            await sharedPreferences.setBool(keySecretByDefault, enabled);
-            setState(() {});
-          },
-        ),
-        SettingsTile.switchTile(
-          initialValue:
-              sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
-                  defaultShowTransactionSuccessPage,
-          title: getText(
-            "Show transaction output on success",
-          ),
-          onToggle: (bool enabled) async {
-            await sharedPreferences.setBool(
-                keyShowTransactionSuccessPage, enabled);
-            setState(() {});
-          },
-        ),
-        SettingsTile.navigation(
+      SettingsSection(
+        title: Text('Account'),
+        tiles: [
+          SettingsTile.switchTile(
+            initialValue: sharedPreferences.getBool(keySecretByDefault) ??
+                defaultSecretByDefault,
             title: getText(
-              "Reset everything",
+              "Encrypt items by default",
             ),
-            trailing: Container(),
-            onPressed: (BuildContext context) async {
-              bool confirmed = await confirmAlert(
-                  context,
-                  Text("This will remove your list from your account, even if "
-                      "there are items in it, and delete all local data. Are you sure?"));
-              if (confirmed) {
-                await sharedPreferences.clear();
-                listManager = ListManager.fromSharedPrefs();
-                print("Reset everything");
-              }
-            }),
-      ]),
+            onToggle: (bool enabled) async {
+              await sharedPreferences.setBool(keySecretByDefault, enabled);
+              setState(() {});
+            },
+          ),
+          SettingsTile.switchTile(
+            initialValue:
+                sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
+                    defaultShowTransactionSuccessPage,
+            title: getText(
+              "Show transaction output on success",
+            ),
+            onToggle: (bool enabled) async {
+              await sharedPreferences.setBool(
+                  keyShowTransactionSuccessPage, enabled);
+              setState(() {});
+            },
+          ),
+          SettingsTile.navigation(
+              title: getText(
+                "Reset everything",
+              ),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                bool confirmed = await confirmAlert(
+                    context,
+                    Text(
+                        "This will remove your list from your account, even if "
+                        "there are items in it, and delete all local data. Are you sure?"));
+                if (confirmed) {
+                  await sharedPreferences.clear();
+                  listManager = ListManager.fromSharedPrefs();
+                  print("Reset everything");
+                }
+              }),
+        ],
+        margin: margin,
+      ),
       SettingsSection(
         title: Text('Links'),
         tiles: [
