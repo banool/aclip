@@ -2,14 +2,15 @@
 name = "native"
 version = "0.1.0"
 edition = "2021"
+authors = ["Daniel Porteous <danielporteous1@gmail.com"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-crate-type = ["cdylib", "staticlib"]
+crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
-anyhow = "1"
+anyhow = { version = "1.0.57", features = ["backtrace"] }
 encoding_rs = "0.8.29"
 html5ever = "0.24.1"
 monolith = "2"

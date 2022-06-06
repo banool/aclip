@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use encoding_rs::Encoding;
 use flutter_rust_bridge::frb;
 use html5ever::rcdom::RcDom;
@@ -14,7 +14,6 @@ use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
-use std::process;
 use std::time::Duration;
 use url::Url;
 
@@ -30,22 +29,21 @@ const DEFAULT_USER_AGENT: &'static str =
 /// I had to do this due to https://github.com/Y2Z/monolith/issues/72.
 /// I've removed some of the functionality I don't need and of course added
 /// arguments and cleared out the argparsing stuff.
-pub fn download_page(options: Options) -> Result<()> {
+///
+/// You can't return the unit type, hence the bool here.
+/// https://github.com/fzyzcjy/flutter_rust_bridge/issues/197
+pub fn download_page(options: Options) -> Result<bool> {
     let mut target: String = options.target.clone();
 
     // Check if target was provided
     if target.len() == 0 {
-        if !options.silent {
-            eprintln!("No target specified");
-        }
-        process::exit(1);
+        bail!("No target specified");
     }
 
     // Check if custom charset is valid
     if let Some(custom_charset) = options.charset.clone() {
         if !Encoding::for_label_no_replacement(custom_charset.as_bytes()).is_some() {
-            eprintln!("Unknown encoding: {}", &custom_charset);
-            process::exit(1);
+            bail!("Unknown encoding: {}", &custom_charset);
         }
     }
 
@@ -60,10 +58,7 @@ pub fn download_page(options: Options) -> Result<()> {
             {
                 target_url = parsed_url;
             } else {
-                if !options.silent {
-                    eprintln!("Unsupported target URL type: {}", &parsed_url.scheme());
-                }
-                process::exit(1);
+                bail!("Unsupported target URL type: {}", &parsed_url.scheme());
             }
         }
         Err(_err) => {
@@ -72,25 +67,12 @@ pub fn download_page(options: Options) -> Result<()> {
 
             if path.exists() {
                 if path.is_file() {
-                    match Url::from_file_path(fs::canonicalize(&path).unwrap()) {
-                        Ok(file_url) => {
-                            target_url = file_url;
-                        }
-                        Err(_err) => {
-                            if !options.silent {
-                                eprintln!(
-                                    "Could not generate file URL out of given path: {}",
-                                    "err"
-                                );
-                            }
-                            process::exit(1);
-                        }
-                    }
+                    target_url = Url::from_file_path(
+                        fs::canonicalize(&path).expect("Failed to canonicalize path"),
+                    )
+                    .expect("Could not generate file URL out of given path");
                 } else {
-                    if !options.silent {
-                        eprintln!("Local target is not a file: {}", &options.target);
-                    }
-                    process::exit(1);
+                    bail!("Local target is not a file: {}", &options.target);
                 }
             } else {
                 // Last chance, now we do what browsers do:
@@ -139,10 +121,7 @@ pub fn download_page(options: Options) -> Result<()> {
             Ok((retrieved_data, final_url, media_type, charset)) => {
                 // Make sure the media type is text/html
                 if !media_type.eq_ignore_ascii_case("text/html") {
-                    if !options.silent {
-                        eprintln!("Unsupported document media type");
-                    }
-                    process::exit(1);
+                    bail!("Unsupported document media type");
                 }
 
                 if options
@@ -157,15 +136,12 @@ pub fn download_page(options: Options) -> Result<()> {
                 data = retrieved_data;
                 document_encoding = charset;
             }
-            Err(_) => {
-                if !options.silent {
-                    eprintln!("Could not retrieve target document");
-                }
-                process::exit(1);
+            Err(e) => {
+                bail!("Could not retrieve target document: {}", e);
             }
         }
     } else {
-        process::exit(1);
+        bail!("Unknown document scheme");
     }
 
     // Initial parse
@@ -218,13 +194,7 @@ pub fn download_page(options: Options) -> Result<()> {
                                 base_url = file_url;
                             }
                             Err(_) => {
-                                if !options.silent {
-                                    eprintln!(
-                                        "Could not map given path to base URL: {}",
-                                        custom_base_url
-                                    );
-                                }
-                                process::exit(1);
+                                bail!("Could not map given path to base URL: {}", custom_base_url);
                             }
                         }
                     }
@@ -287,14 +257,18 @@ pub fn download_page(options: Options) -> Result<()> {
     let mut file = fs::File::create(&options.output).context("Failed to create file")?;
 
     // Write result into stdout or file
-    file.write_all(&result)?;
+    file.write_all(&result)
+        .context("Failed to write output to file")?;
+
     // Ensure newline at end of output
     if result.last() != Some(&b"\n"[0]) {
-        file.write(b"\n")?;
+        file.write(b"\n")
+            .context("Failed to write newline to file")?;
     }
-    file.flush()?;
 
-    Ok(())
+    file.flush().context("Failed to flush file")?;
+
+    Ok(true)
 }
 
 // http://cjycode.com/flutter_rust_bridge/feature/lang_external.html#types-in-other-crates

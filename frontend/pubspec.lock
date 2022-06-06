@@ -112,7 +112,7 @@ packages:
       name: device_info_plus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.3"
+    version: "3.2.4"
   device_info_plus_linux:
     dependency: transitive
     description:
@@ -206,7 +206,7 @@ packages:
       name: flutter_rust_bridge
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.32.0"
+    version: "1.34.0"
   flutter_slidable:
     dependency: "direct main"
     description:

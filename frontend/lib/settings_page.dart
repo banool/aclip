@@ -5,6 +5,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'constants.dart';
+import 'download_logs_page.dart';
 import 'globals.dart';
 import 'page_selector.dart';
 
@@ -63,6 +64,18 @@ class SettingsPageState extends State<SettingsPage> {
                 ));
                 listManager = ListManager.fromSharedPrefs();
                 setState(() {});
+              }),
+          SettingsTile.navigation(
+              title: getText(
+                "Offline download errors",
+              ),
+              trailing: Container(),
+              onPressed: (BuildContext context) async {
+                return await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DownloadLogsPage(),
+                    ));
               }),
         ],
         margin: margin,
@@ -169,7 +182,6 @@ Text getText(String s, {bool larger = false}) {
   }
   return Text(
     s,
-    textAlign: TextAlign.center,
     style: TextStyle(fontSize: size),
   );
 }

@@ -18,7 +18,10 @@ abstract class Native {
   /// I had to do this due to https://github.com/Y2Z/monolith/issues/72.
   /// I've removed some of the functionality I don't need and of course added
   /// arguments and cleared out the argparsing stuff.
-  Future<void> downloadPage({required Options options, dynamic hint});
+  ///
+  /// You can't return the unit type, hence the bool here.
+  /// https://github.com/fzyzcjy/flutter_rust_bridge/issues/197
+  Future<bool> downloadPage({required Options options, dynamic hint});
 
   Future<Platform> platform({dynamic hint});
 
@@ -88,11 +91,11 @@ class NativeImpl extends FlutterRustBridgeBase<NativeWire> implements Native {
 
   NativeImpl.raw(NativeWire inner) : super(inner);
 
-  Future<void> downloadPage({required Options options, dynamic hint}) =>
+  Future<bool> downloadPage({required Options options, dynamic hint}) =>
       executeNormal(FlutterRustBridgeTask(
         callFfi: (port_) => inner.wire_download_page(
             port_, _api2wire_box_autoadd_options(options)),
-        parseSuccessData: _wire2api_unit,
+        parseSuccessData: _wire2api_bool,
         constMeta: const FlutterRustBridgeTaskConstMeta(
           debugName: "download_page",
           argNames: ["options"],
@@ -196,10 +199,6 @@ bool _wire2api_bool(dynamic raw) {
 
 Platform _wire2api_platform(dynamic raw) {
   return Platform.values[raw];
-}
-
-void _wire2api_unit(dynamic raw) {
-  return;
 }
 
 // ignore_for_file: camel_case_types, non_constant_identifier_names, avoid_positional_boolean_parameters, annotate_overrides, constant_identifier_names

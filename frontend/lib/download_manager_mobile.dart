@@ -130,19 +130,24 @@ class DownloadManager {
       LinkedHashMap();
   LinkedHashMap<String, DownloadStatus> urlToDownloadStatus = LinkedHashMap();
 
-  Future<void> triggerDownload(String url) async {
-    if (!shouldDownload(url)) {
+  Future<void> triggerDownload(String url,
+      {bool forceFromInternet = false}) async {
+    if (!shouldDownload(url) && !forceFromInternet) {
       return;
     }
-    urlToDownload[url] = download(url);
+    urlToDownload[url] = download(url, forceFromInternet: forceFromInternet);
+    await urlToDownload[url];
   }
 
-  Future<DownloadMetadata> download(String url) async {
+  Future<DownloadMetadata> download(String url,
+      {bool forceFromInternet = false}) async {
     // Check whether we've previously downloaded everything first.
-    var downloadFromStorage = await DownloadMetadata.readFromStorage(url);
-    if (downloadFromStorage != null) {
-      print("Read from storage for $url");
-      return downloadFromStorage;
+    if (!forceFromInternet) {
+      var downloadFromStorage = await DownloadMetadata.readFromStorage(url);
+      if (downloadFromStorage != null) {
+        print("Read from storage for $url");
+        return downloadFromStorage;
+      }
     }
 
     print("Downloading $url");
@@ -191,7 +196,7 @@ class DownloadManager {
 
     // Try to determine the title of the page.
     String pageTitle;
-    var headElements = parsed.head?.getElementsByClassName("title") ?? [];
+    var headElements = parsed.head?.querySelectorAll("title") ?? [];
     if (headElements.isNotEmpty) {
       pageTitle = headElements[0].text;
     } else {

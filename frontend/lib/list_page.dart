@@ -18,11 +18,21 @@ class ListPage extends StatefulWidget {
   State<ListPage> createState() => ListPageState();
 }
 
-class ListPageState extends State<ListPage> {
+class ListPageState extends State<ListPage> with TickerProviderStateMixin {
   Future? removeItemFuture;
   String? currentAction;
 
   bool showArchived = false;
+
+  late AnimationController loadingController;
+
+  @override
+  void initState() {
+    loadingController = AnimationController(
+        vsync: this, duration: Duration(milliseconds: 1000));
+    loadingController.repeat(reverse: true);
+    super.initState();
+  }
 
   Future<void> initiateAddItemFlow(BuildContext context) async {
     await showModalBottomSheet(
@@ -171,15 +181,36 @@ class ListPageState extends State<ListPage> {
         builder:
             (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return CircularProgressIndicator();
+            return Align(
+                alignment: Alignment.bottomLeft,
+                child: RotationTransition(
+                    turns:
+                        Tween(begin: 0.0, end: 0.25).animate(loadingController),
+                    child: AnimatedIcon(
+                        size: 22,
+                        icon: AnimatedIcons.search_ellipsis,
+                        progress: loadingController)));
           }
+          // ignore: prefer_function_declarations_over_variables
+          IconData iconData;
           if (snapshot.hasError) {
-            return IconButton(
-              icon: Icon(Icons.error),
-              onPressed: () => downloadManager.triggerDownload(url),
-            );
+            iconData = Icons.error;
+          } else {
+            iconData = Icons.done;
           }
-          return Icon(Icons.done);
+          return IconButton(
+            icon: Icon(iconData, size: 20),
+            onPressed: () async {
+              var f =
+                  downloadManager.triggerDownload(url, forceFromInternet: true);
+              setState(() {});
+              await f;
+              setState(() {});
+            },
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints(),
+            alignment: Alignment.bottomLeft,
+          );
         });
 
     Widget subtitle = Row(
@@ -191,13 +222,13 @@ class ListPageState extends State<ListPage> {
         builder:
             (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return Container();
+            return SizedBox(width: 10, height: 10);
           }
           if (snapshot.hasError) {
-            return Container();
+            return SizedBox(width: 10, height: 10);
           }
           if (snapshot.data!.imageProvider == null) {
-            return Container();
+            return SizedBox(width: 10, height: 10);
           }
           return Image(image: snapshot.data!.imageProvider!);
         });

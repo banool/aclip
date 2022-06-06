@@ -1,30 +1,7 @@
 # aclip frontend 
 
 ## Flutter -> Rust bindings
-To get the Flutter -> Rust bindings to work, you have to follow these instructions:
-- http://cjycode.com/flutter_rust_bridge/template/setup_android.html
-- http://cjycode.com/flutter_rust_bridge/template/setup_ios.html
-- http://cjycode.com/flutter_rust_bridge/template/generate_install.html
-
-I also followed other instructions already that you shouldn't need to do again, e.g.
-- http://cjycode.com/flutter_rust_bridge/integrate/ios_linking.html
-- http://cjycode.com/flutter_rust_bridge/integrate/ios_headers.html
-
-Note this issue re ffigen: https://github.com/fzyzcjy/flutter_rust_bridge/issues/478.
-
-Make sure to set appropriate value in `android/gradle.properties`:
-```
-ANDROID_NDK=/Users/dport/Library/Android/sdk/ndk-bundle
-```
-
-To generate the bindings afresh after you update your code, run `just`. You might also want to run these first:
-```
-cd native
-cargo build --release
-cargo xcode
-```
-
-If you decide to release this app for MacOS, you'll have to look into these steps again, I haven't done the MacOS stuff.
+See `native/README.md`.
 
 ## Deploying to Android
 This is done automatically via Github Actions.
