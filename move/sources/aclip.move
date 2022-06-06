@@ -74,7 +74,7 @@ module aclip::RootV4 {
             if (Option::is_none(&key)) {
                 break
             };
-            let (_v, _prev, next) = MapTable::remove_iter(&mut list, Option::borrow(&key));
+            let (_v, _prev, next) = MapTable::remove_iter(&mut list, Option::extract(&mut key));
             key = next;
         };
         MapTable::destroy_empty(list);
@@ -99,9 +99,9 @@ module aclip::RootV4 {
         let inner = &mut borrow_global_mut<RootV4>(addr).inner;
 
         if (add_to_archive) {
-            MapTable::add(&mut inner.archived_links, &ASCII::string(url_raw), link_data);
+            MapTable::add(&mut inner.archived_links, ASCII::string(url_raw), link_data);
         } else {
-            MapTable::add(&mut inner.links, &ASCII::string(url_raw), link_data);
+            MapTable::add(&mut inner.links, ASCII::string(url_raw), link_data);
         };
     }
 
@@ -119,9 +119,9 @@ module aclip::RootV4 {
         let inner = &mut borrow_global_mut<RootV4>(addr).inner;
 
         if (add_to_archive) {
-            MapTable::add(&mut inner.archived_secret_links, &url, link_data);
+            MapTable::add(&mut inner.archived_secret_links, url, link_data);
         } else {
-            MapTable::add(&mut inner.secret_links, &url, link_data);
+            MapTable::add(&mut inner.secret_links, url, link_data);
         };
     }
 
@@ -160,19 +160,19 @@ module aclip::RootV4 {
         if (is_secret) {
             if (make_archived) {
                 let item = MapTable::remove(&mut inner.secret_links, url_raw);
-                MapTable::add(&mut inner.archived_secret_links, &url_raw, item);
+                MapTable::add(&mut inner.archived_secret_links, url_raw, item);
             } else {
                 let item = MapTable::remove(&mut inner.archived_secret_links, url_raw);
-                MapTable::add(&mut inner.secret_links, &url_raw, item);
+                MapTable::add(&mut inner.secret_links, url_raw, item);
             }
         } else {
             let url = ASCII::string(url_raw);
             if (make_archived) {
                 let item = MapTable::remove(&mut inner.links, url);
-                MapTable::add(&mut inner.archived_links, &url, item);
+                MapTable::add(&mut inner.archived_links, url, item);
             } else {
                 let item = MapTable::remove(&mut inner.archived_links, url);
-                MapTable::add(&mut inner.links, &url, item);
+                MapTable::add(&mut inner.links, url, item);
             }
         };
     }
@@ -213,7 +213,7 @@ module aclip::RootV4 {
 
         // Confirm that the other link is still there in the archived list.
         let inner = &borrow_global<RootV4>(addr).inner;
-        assert!(MapTable::contains(&inner.archived_links, &ASCII::string(url2)), Errors::internal(E_TEST_FAILURE));
+        assert!(MapTable::contains(&inner.archived_links, ASCII::string(url2)), Errors::internal(E_TEST_FAILURE));
 
         // Confirm that even if there are items, we can destroy everything.
         obliterate(&account);
