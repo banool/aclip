@@ -21,7 +21,7 @@ use url::Url;
 pub use monolith::opts::Options;
 
 const DEFAULT_USER_AGENT: &'static str =
-    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0";
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1";
 
 /// This is just the main function yanked from:
 /// https://github.com/Y2Z/monolith/blob/master/src/main.rs
