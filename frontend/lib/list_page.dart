@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:aclip/constants.dart';
 import 'package:aclip/globals.dart';
 import 'package:aclip/page_selector.dart';
@@ -5,11 +7,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import 'add_item_screen.dart';
 import 'common.dart';
 import 'download_manager.dart';
 import 'list_manager.dart';
+import 'offline_webview.dart';
 import 'transaction_result_widget.dart';
 
 class ListPage extends StatefulWidget {
@@ -169,16 +173,19 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
       launchMode = LaunchMode.platformDefault;
     }
 
-    if (kIsWeb || await canConnectToInternet()) {
+    bool offlineOnly = sharedPreferences.getBool(keyOnlyOfflineLinks) ??
+        defaultOnlyOfflineLinks;
+
+    if (kIsWeb || (await canConnectToInternet()) && !offlineOnly) {
       await launchUrl(
         Uri.parse(url),
         mode: launchMode,
       );
     } else {
-      await launchUrl(
-        Uri.parse(getFilePathFromUrl(url)),
-        mode: launchMode,
-      );
+      // TODO: Find a way to just use the user's browser.
+      await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return OfflineWebView(url);
+      }));
     }
   }
 
@@ -246,18 +253,26 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
         future: downloadManager.urlToDownload[url]!,
         builder:
             (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
+          var nothing = SizedBox(width: 10, height: 10);
           if (snapshot.connectionState != ConnectionState.done) {
-            return SizedBox(width: 10, height: 10);
+            return nothing;
           }
           if (snapshot.hasError) {
-            return SizedBox(width: 10, height: 10);
+            return nothing;
           }
           if (snapshot.data!.imageProvider == null) {
-            return SizedBox(width: 10, height: 10);
+            return nothing;
           }
-          return FractionallySizedBox(
-              widthFactor: 0.38,
-              child: Image(image: snapshot.data!.imageProvider!));
+          return Image(
+            image: snapshot.data!.imageProvider!,
+            loadingBuilder: (context, child, loadingProgress) =>
+                (loadingProgress == null)
+                    ? FractionallySizedBox(widthFactor: 0.35, child: child)
+                    : CircularProgressIndicator(),
+            errorBuilder: (BuildContext context, _, __) {
+              return nothing;
+            },
+          );
         });
 
     return Card(
