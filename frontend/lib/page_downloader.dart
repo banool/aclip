@@ -10,6 +10,9 @@ import 'package:html/parser.dart' show parse;
 
 import 'ffi.dart';
 
+// TODO: Make this configurable.
+const int CACHE_TTL_SECS = 60 * 60 * 24 * 31;
+
 Options getOptionsFromSharedPrefs(String targetUrl, String outputPath) {
   bool insecure =
       !(sharedPreferences.getBool(keyForceHttpsOnly) ?? defaultForceHttpsOnly);
@@ -37,9 +40,13 @@ String getFileNameFromUrl(String url) {
   return md5.convert(utf8.encode(url)).toString();
 }
 
+String getFilePathFromUrl(String url) {
+  return "$downloadsDirectory/${getFileNameFromUrl(url)}";
+}
+
 // Returns the path that the file was downloaded to.
 Future<String> _downloadPage(String targetUrl) async {
-  String outputPath = "$downloadsDirectory/${getFileNameFromUrl(targetUrl)}";
+  String outputPath = getFilePathFromUrl(targetUrl);
   Options options = getOptionsFromSharedPrefs(targetUrl, outputPath);
   await api.downloadPage(options: options);
   return outputPath;
@@ -55,10 +62,71 @@ class DownloadStatus {
 class DownloadMetadata {
   String pageTitle;
   int unixtimeDownloadedSecs;
+  String? imageBase64;
   ImageProvider? imageProvider;
 
-  DownloadMetadata(
-      this.pageTitle, this.unixtimeDownloadedSecs, this.imageProvider);
+  static String getPageTitleKey(String fileNameFromUrl) {
+    return "keyPageTitle$fileNameFromUrl";
+  }
+
+  static String getUnixtimeDownloadedSecsKey(String fileNameFromUrl) {
+    return "keyDownloadedTime$fileNameFromUrl";
+  }
+
+  static String getImageBase64Key(String fileNameFromUrl) {
+    return "keyImageBase64$fileNameFromUrl";
+  }
+
+  Future<void> writeToStorage(String url) async {
+    var fileNameFromUrl = getFileNameFromUrl(url);
+    await sharedPreferences.setString(
+        getPageTitleKey(fileNameFromUrl), pageTitle);
+    await sharedPreferences.setInt(
+        getUnixtimeDownloadedSecsKey(fileNameFromUrl), unixtimeDownloadedSecs);
+    if (imageBase64 != null) {
+      await sharedPreferences.setString(
+          getImageBase64Key(fileNameFromUrl), imageBase64!);
+    }
+    print("Wrote metadata to storage");
+  }
+
+  static Future<DownloadMetadata?> readFromStorage(String url) async {
+    if (!(await File(getFilePathFromUrl(url)).exists())) {
+      print("Couldn't find file for $url, returning no metadata");
+      return null;
+    }
+
+    var fileNameFromUrl = getFileNameFromUrl(url);
+
+    int? unixtimeDownloadedSecs =
+        sharedPreferences.getInt(getUnixtimeDownloadedSecsKey(fileNameFromUrl));
+    if (unixtimeDownloadedSecs == null) return null;
+
+    if (unixtimeDownloadedSecs <
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000) - CACHE_TTL_SECS) {
+      print(
+          "Found file and metadata for $url, but it is too old, returning no metadata");
+      return null;
+    }
+
+    String? pageTitle =
+        sharedPreferences.getString(getPageTitleKey(fileNameFromUrl));
+    if (pageTitle == null) return null;
+
+    String? imageBase64 =
+        sharedPreferences.getString(getImageBase64Key(fileNameFromUrl));
+
+    ImageProvider? imageProvider;
+    if (imageBase64 != null) {
+      imageProvider = MemoryImage(base64Decode(imageBase64));
+    }
+
+    return DownloadMetadata(
+        pageTitle, unixtimeDownloadedSecs, imageBase64, imageProvider);
+  }
+
+  DownloadMetadata(this.pageTitle, this.unixtimeDownloadedSecs,
+      this.imageBase64, this.imageProvider);
 }
 
 class DownloadManager {
@@ -74,7 +142,16 @@ class DownloadManager {
   }
 
   Future<DownloadMetadata> download(String url) async {
+    // Check whether we've previously downloaded everything first.
+    var downloadFromStorage = await DownloadMetadata.readFromStorage(url);
+    if (downloadFromStorage != null) {
+      print("Read from storage for $url");
+      return downloadFromStorage;
+    }
+
     print("Downloading $url");
+
+    // Download the page.
     urlToDownloadStatus[url] = DownloadStatus(done: false);
     String outputPath;
     try {
@@ -87,9 +164,12 @@ class DownloadManager {
       print("Failed to download $url: $e");
       rethrow;
     }
+
+    // Pull the metadata.
     var metadata = await getMetadata(url, outputPath);
 
-    //
+    // Update the stored metadata.
+    await metadata.writeToStorage(url);
 
     return metadata;
   }
@@ -126,18 +206,26 @@ class DownloadManager {
 
     // Try to find a good image to use.
     ImageProvider? imageProvider;
+    String? base64String;
     var imageElements = parsed.body?.querySelectorAll("img") ?? [];
     if (imageElements.isNotEmpty) {
-      // TODO: Be smarter here about how we parse the html and find the ideal
-      // image to use.
+      // TODO: Be smarter here about how we parse the html and how determine
+      // which image is the primo image to use.
       for (var element in imageElements) {
         var src = element.attributes["src"];
         if (src == null) continue;
         if (src.contains("base64,")) {
           var s = src.split("base64,");
           if (s.length > 1) {
-            var base64String = s.last;
-            imageProvider = MemoryImage(base64Decode(base64String));
+            try {
+              base64String = s.last;
+              imageProvider = MemoryImage(base64Decode(base64String));
+            } catch (e) {
+              print("Failed to decode base64 for an image in $url");
+              base64String = null;
+              imageProvider = null;
+              continue;
+            }
             print("Sucessfully found image to use for $url");
             break;
           }
@@ -145,6 +233,10 @@ class DownloadManager {
       }
     }
 
-    return DownloadMetadata(pageTitle, unixtimeDownloadedSecs, imageProvider);
+    return DownloadMetadata(
+        pageTitle, unixtimeDownloadedSecs, base64String, imageProvider);
   }
+
+  Future<void> writeDownloadMetadataToStorage(
+      String url, DownloadMetadata metadata) async {}
 }
