@@ -29,7 +29,7 @@ void main() {
         buildNumber: "1",
         buildSignature: "whatever");
 
-    await setup(pull: false, setupDownloadManager: false);
+    await setup(pull: false, setupDownloadDirectory: false);
 
     await tester.pumpWidget(const MyApp());
 

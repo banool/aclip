@@ -4,10 +4,10 @@ import 'dart:io';
 
 import 'package:aclip/constants.dart';
 import 'package:aclip/globals.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart' show parse;
 
+import 'download_manager.dart';
 import 'ffi.dart';
 
 // TODO: Make this configurable.
@@ -36,20 +36,16 @@ Options getOptionsFromSharedPrefs(String targetUrl, String outputPath) {
       unwrapNoscript: false);
 }
 
-String getFileNameFromUrl(String url) {
-  return md5.convert(utf8.encode(url)).toString();
-}
-
-String getFilePathFromUrl(String url) {
-  return "$downloadsDirectory/${getFileNameFromUrl(url)}";
-}
-
 // Returns the path that the file was downloaded to.
 Future<String> _downloadPage(String targetUrl) async {
   String outputPath = getFilePathFromUrl(targetUrl);
   Options options = getOptionsFromSharedPrefs(targetUrl, outputPath);
   await api.downloadPage(options: options);
   return outputPath;
+}
+
+String getFilePathFromUrl(String url) {
+  return "$downloadsDirectory/${getFileNameFromUrl(url)}";
 }
 
 class DownloadStatus {
