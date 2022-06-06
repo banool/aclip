@@ -77,6 +77,19 @@ class SettingsPageState extends State<SettingsPage> {
                       builder: (context) => DownloadLogsPage(),
                     ));
               }),
+          SettingsTile.switchTile(
+            initialValue:
+                sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
+                    defaultShowTransactionSuccessPage,
+            title: getText(
+              "Show transaction output on success",
+            ),
+            onToggle: (bool enabled) async {
+              await sharedPreferences.setBool(
+                  keyShowTransactionSuccessPage, enabled);
+              setState(() {});
+            },
+          ),
         ],
         margin: margin,
       ),

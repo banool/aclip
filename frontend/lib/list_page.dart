@@ -24,14 +24,25 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
 
   bool showArchived = false;
 
-  late AnimationController loadingController;
+  late List<String> linksKeys;
+  late List<String> linksKeysArchived;
+
+  late AnimationController loadingAnimationController;
 
   @override
   void initState() {
-    loadingController = AnimationController(
+    loadingAnimationController = AnimationController(
         vsync: this, duration: Duration(milliseconds: 1000));
-    loadingController.repeat(reverse: true);
+    loadingAnimationController.repeat(reverse: true);
+    updateLinksKeys();
     super.initState();
+  }
+
+  void updateLinksKeys() {
+    setState(() {
+      linksKeys = listManager.getLinksKeys(archived: false)!;
+      linksKeysArchived = listManager.getLinksKeys(archived: true)!;
+    });
   }
 
   Future<void> initiateAddItemFlow(BuildContext context) async {
@@ -89,6 +100,12 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                       return TransactionResultWidget(TransactionResult(
                           false, null, getErrorString(snapshot.error!)));
                     }
+                    if (!(sharedPreferences
+                            .getBool(keyShowTransactionSuccessPage) ??
+                        defaultShowTransactionSuccessPage)) {
+                      Navigator.pop(context);
+                      return Container();
+                    }
                     return TransactionResultWidget(snapshot.data!);
                   }));
         });
@@ -96,6 +113,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     if (result.success) {
       final controller = Slidable.of(context);
       controller!.dismiss(ResizeRequest(Duration(milliseconds: 100), () => {}));
+      updateLinksKeys();
     }
     return result;
   }
@@ -114,11 +132,11 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
           });
         },
         icon: Icon(showArchived ? Icons.list_alt : Icons.archive_outlined));
-    var linksKeys = listManager.getLinksKeys(archived: showArchived)!;
+    var l = showArchived ? linksKeysArchived : linksKeys;
     Widget listView = ListView.builder(
-        itemCount: linksKeys.length,
+        itemCount: l.length,
         itemBuilder: (context, index) {
-          String key = linksKeys.elementAt(index);
+          String key = l.elementAt(index);
           return buildListItem(key, listManager.links![key]!);
         });
     Widget body = RefreshIndicator(
@@ -182,16 +200,15 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
             (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return Align(
-                alignment: Alignment.bottomLeft,
+                alignment: Alignment.center,
                 child: RotationTransition(
-                    turns:
-                        Tween(begin: 0.0, end: 0.25).animate(loadingController),
+                    turns: Tween(begin: 0.0, end: 0.25)
+                        .animate(loadingAnimationController),
                     child: AnimatedIcon(
                         size: 22,
                         icon: AnimatedIcons.search_ellipsis,
-                        progress: loadingController)));
+                        progress: loadingAnimationController)));
           }
-          // ignore: prefer_function_declarations_over_variables
           IconData iconData;
           if (snapshot.hasError) {
             iconData = Icons.error;
@@ -209,12 +226,12 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
             },
             padding: EdgeInsets.zero,
             constraints: BoxConstraints(),
-            alignment: Alignment.bottomLeft,
+            alignment: Alignment.center,
           );
         });
 
     Widget subtitle = Row(
-      children: [downloadingIndicator, Text(subtitleSuffix)],
+      children: [Text(subtitleSuffix), downloadingIndicator],
     );
 
     Widget trailing = FutureBuilder(
@@ -230,7 +247,9 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
           if (snapshot.data!.imageProvider == null) {
             return SizedBox(width: 10, height: 10);
           }
-          return Image(image: snapshot.data!.imageProvider!);
+          return FractionallySizedBox(
+              widthFactor: 0.38,
+              child: Image(image: snapshot.data!.imageProvider!));
         });
 
     return Card(
@@ -272,5 +291,11 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
               trailing: trailing,
               onTap: () async => await myLaunchUrl(url),
             )));
+  }
+
+  @override
+  void dispose() {
+    loadingAnimationController.dispose();
+    super.dispose();
   }
 }
