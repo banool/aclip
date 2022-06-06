@@ -121,25 +121,6 @@ class SettingsPageState extends State<SettingsPage> {
         margin: margin,
       ),
       SettingsSection(
-        title: const Text('Legal Information'),
-        tiles: [
-          SettingsTile.navigation(
-            title: getText(
-              'See legal information',
-            ),
-            trailing: Container(),
-            onPressed: (BuildContext context) async {
-              return await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LegalInformationPage(),
-                  ));
-            },
-          )
-        ],
-        margin: margin,
-      ),
-      SettingsSection(
         title: const Text('Community'),
         tiles: [
           SettingsTile.navigation(
@@ -156,8 +137,21 @@ class SettingsPageState extends State<SettingsPage> {
         margin: margin,
       ),
       SettingsSection(
-        title: const Text('App Details'),
+        title: const Text('App Detail'),
         tiles: [
+          SettingsTile.navigation(
+            title: getText(
+              'See legal information',
+            ),
+            trailing: Container(),
+            onPressed: (BuildContext context) async {
+              return await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LegalInformationPage(),
+                  ));
+            },
+          ),
           SettingsTile.navigation(
             title: getText(
               'See build information',

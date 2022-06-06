@@ -48,19 +48,9 @@ String getFilePathFromUrl(String url) {
   return "$downloadsDirectory/${getFileNameFromUrl(url)}";
 }
 
-class DownloadStatus {
-  bool done;
-  Object? error;
-
-  DownloadStatus({required this.done, this.error});
-}
-
-class DownloadMetadata {
-  String pageTitle;
-  int unixtimeDownloadedSecs;
-  String? imageBase64;
-  ImageProvider? imageProvider;
-
+// It's easiest if DownloadMetadata exists in the common download_manager.dart
+// file and we add the mobile specific stuff here is an extension.
+extension StorageStuff on DownloadMetadata {
   static String getPageTitleKey(String fileNameFromUrl) {
     return "keyPageTitle$fileNameFromUrl";
   }
@@ -120,9 +110,6 @@ class DownloadMetadata {
     return DownloadMetadata(
         pageTitle, unixtimeDownloadedSecs, imageBase64, imageProvider);
   }
-
-  DownloadMetadata(this.pageTitle, this.unixtimeDownloadedSecs,
-      this.imageBase64, this.imageProvider);
 }
 
 class DownloadManager {
@@ -143,7 +130,7 @@ class DownloadManager {
       {bool forceFromInternet = false}) async {
     // Check whether we've previously downloaded everything first.
     if (!forceFromInternet) {
-      var downloadFromStorage = await DownloadMetadata.readFromStorage(url);
+      var downloadFromStorage = await StorageStuff.readFromStorage(url);
       if (downloadFromStorage != null) {
         print("Read from storage for $url");
         return downloadFromStorage;
@@ -167,7 +154,7 @@ class DownloadManager {
     }
 
     // Pull the metadata.
-    var metadata = await getMetadata(url, outputPath);
+    var metadata = await mobileGetMetadata(url, outputPath);
 
     // Update the stored metadata.
     await metadata.writeToStorage(url);
@@ -188,54 +175,10 @@ class DownloadManager {
     return false;
   }
 
-  Future<DownloadMetadata> getMetadata(
+  Future<DownloadMetadata> mobileGetMetadata(
       String url, String downloadedPath) async {
     String content = await File(downloadedPath).readAsString();
-
-    var parsed = parse(content);
-
-    // Try to determine the title of the page.
-    String pageTitle;
-    var headElements = parsed.head?.querySelectorAll("title") ?? [];
-    if (headElements.isNotEmpty) {
-      pageTitle = headElements[0].text;
-    } else {
-      pageTitle = url;
-    }
-
-    int unixtimeDownloadedSecs = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-    // Try to find a good image to use.
-    ImageProvider? imageProvider;
-    String? base64String;
-    var imageElements = parsed.body?.querySelectorAll("img") ?? [];
-    if (imageElements.isNotEmpty) {
-      // TODO: Be smarter here about how we parse the html and how determine
-      // which image is the primo image to use.
-      for (var element in imageElements) {
-        var src = element.attributes["src"];
-        if (src == null) continue;
-        if (src.contains("base64,")) {
-          var s = src.split("base64,");
-          if (s.length > 1) {
-            try {
-              base64String = s.last;
-              imageProvider = MemoryImage(base64Decode(base64String));
-            } catch (e) {
-              print("Failed to decode base64 for an image in $url");
-              base64String = null;
-              imageProvider = null;
-              continue;
-            }
-            print("Sucessfully found image to use for $url");
-            break;
-          }
-        }
-      }
-    }
-
-    return DownloadMetadata(
-        pageTitle, unixtimeDownloadedSecs, base64String, imageProvider);
+    return getMetadata(content, downloadedPath);
   }
 
   Future<void> writeDownloadMetadataToStorage(

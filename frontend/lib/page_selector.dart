@@ -4,6 +4,7 @@ import 'package:aclip/add_item_screen.dart';
 import 'package:aclip/common.dart';
 import 'package:aclip/globals.dart';
 import 'package:aclip/list_page_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
@@ -45,20 +46,22 @@ class PageSelectorState extends State<PageSelector> {
     pageSelectorController = PageSelectorController(refresh);
 
     // For sharing or opening urls/text coming from outside the app while the app is in the memory
-    _intentDataStreamSubscription =
-        ReceiveSharingIntent.getTextStreamAsUri().listen((Uri value) async {
-      await handleShareUrl(value);
-    }, onError: (err) async {
-      await showErrorInDialog(context, err);
-    });
+    if (!kIsWeb) {
+      _intentDataStreamSubscription =
+          ReceiveSharingIntent.getTextStreamAsUri().listen((Uri value) async {
+        await handleShareUrl(value);
+      }, onError: (err) async {
+        await showErrorInDialog(context, err);
+      });
 
-    // For sharing or opening urls/text coming from outside the app while the app is closed
-    ReceiveSharingIntent.getInitialTextAsUri().then((Uri? value) async {
-      if (value == null) {
-        return;
-      }
-      await handleShareUrl(value);
-    });
+      // For sharing or opening urls/text coming from outside the app while the app is closed
+      ReceiveSharingIntent.getInitialTextAsUri().then((Uri? value) async {
+        if (value == null) {
+          return;
+        }
+        await handleShareUrl(value);
+      });
+    }
 
     super.initState();
   }

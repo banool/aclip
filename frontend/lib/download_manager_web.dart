@@ -1,7 +1,8 @@
 import 'dart:collection';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+
+import 'download_manager.dart';
 
 // The web version of DownloadManager is much simpler. We don't actually
 // download the whole page or store anything, we just submit a request to get
@@ -10,40 +11,53 @@ import 'package:flutter/material.dart';
 class DownloadManager {
   LinkedHashMap<String, Future<DownloadMetadata>> urlToDownload =
       LinkedHashMap();
+  LinkedHashMap<String, DownloadStatus> urlToDownloadStatus = LinkedHashMap();
 
-  Future<void> triggerDownload(String url) async {
-    if (!shouldDownload(url)) {
+  Future<void> triggerDownload(String url,
+      {bool forceFromInternet = false}) async {
+    print('sould: ${shouldDownload(url)} ');
+    if (!shouldDownload(url) && !forceFromInternet) {
       return;
     }
     urlToDownload[url] = download(url);
+    await urlToDownload[url];
   }
 
   Future<DownloadMetadata> download(String url) async {
-    print("Submitting HEAD request for $url");
+    print("Submitting GET request for $url");
 
-    // Download the page.
-    var response = await Dio().head(url);
+    // Make a HEAD request to try to get the page title.
+    urlToDownloadStatus[url] = DownloadStatus(done: false);
+    Response<dynamic> response;
+    try {
+      response = await Dio().get(url);
+      print(response);
+      print("Successfully got $url");
+      urlToDownloadStatus[url]!.done = true;
+    } catch (e) {
+      urlToDownloadStatus[url]!.done = true;
+      urlToDownloadStatus[url]!.error = e;
+      print("Failed to get $url: $e");
+      rethrow;
+    }
 
-    print(response);
-
-    var metadata = DownloadMetadata("hey", 0);
-
-    return metadata;
+    return await getMetadata(url, response.data);
   }
 
   bool shouldDownload(String url) {
     if (!urlToDownload.containsKey(url)) {
       return true;
     }
+    if (!urlToDownloadStatus.containsKey(url)) {
+      return true;
+    }
+    if (urlToDownloadStatus[url]!.error != null) {
+      return true;
+    }
     return false;
   }
 }
 
-class DownloadMetadata {
-  String pageTitle;
-  int unixtimeDownloadedSecs;
-  String? imageBase64;
-  ImageProvider? imageProvider;
-
-  DownloadMetadata(this.pageTitle, this.unixtimeDownloadedSecs);
+String getFilePathFromUrl(String url) {
+  throw "Should not be used";
 }
