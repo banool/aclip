@@ -40,7 +40,7 @@ Future<void> setup({bool pull = true, setupDownloadDirectory = true}) async {
 
   downloadManager = DownloadManager();
 
-  if (Platform.isAndroid) {
+  if (!kIsWeb && Platform.isAndroid) {
     WebView.platform = SurfaceAndroidWebView();
   }
 

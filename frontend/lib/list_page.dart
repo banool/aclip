@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:aclip/constants.dart';
 import 'package:aclip/globals.dart';
 import 'package:aclip/page_selector.dart';
@@ -7,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import 'add_item_screen.dart';
 import 'common.dart';

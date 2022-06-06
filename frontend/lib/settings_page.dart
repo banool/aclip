@@ -55,7 +55,7 @@ class SettingsPageState extends State<SettingsPage> {
           ),
           SettingsTile.navigation(
               title: getText(
-                "Reset everything",
+                "Wipe list from account",
               ),
               trailing: Container(),
               onPressed: (BuildContext context) async {
@@ -244,14 +244,14 @@ Future<bool> showChangeStringSharedPrefDialog(
     controller: textController,
   );
   // ignore: deprecated_member_use
-  Widget cancelButton = FlatButton(
+  Widget cancelButton = ElevatedButton(
     child: Text(cancelText),
     onPressed: () {
       Navigator.of(context).pop();
     },
   );
   // ignore: deprecated_member_use
-  Widget continueButton = FlatButton(
+  Widget continueButton = ElevatedButton(
     key: ValueKey("continueButton"),
     child: Text(confirmText),
     onPressed: () async {
