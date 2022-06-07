@@ -16,4 +16,5 @@ When first pulling this repo, add this to `.git/hooks/pre-commit` and make it ex
 cd frontend 
 ./bump_version.sh
 git add pubspec.yaml
+git add web/manifest_extension.json
 ```

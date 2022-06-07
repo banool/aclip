@@ -111,12 +111,13 @@ jobs:
       with:
         flutter-version: '3.0.1'
         channel: stable
+    
+    # Switch to the web build.
+    - run: ./switch_web.sh web
 
-    # Initial build and test
+    # Test and build 
     - run: flutter pub get
     - run: flutter test
-
-    # Build the web frontend
     - run: flutter build web
 
     # Copy the files into the GCP bucket.

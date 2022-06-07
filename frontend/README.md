@@ -3,6 +3,26 @@
 ## Flutter -> Rust bindings
 See `native/README.md`.
 
+## Notes on building for web / extension
+While initially I considered having two separate flutter projects and a shared package, one for the app / web and one for the extension, I realised that I like the potential to have the full app functionality right there in the extension. Once I'd made that choice, the differences between the two became pretty light.
+
+When developing locally, if you want to build the web or extension, run this command:
+```
+./switch_web.sh
+```
+This will toggle between web and extension build modes. You can also invoke it to specifically target one or the other:
+```
+./switch_web.sh web
+./switch_web.sh extension
+```
+
+If building for extension, make sure to build it like this:
+```
+flutter build web --web-renderer html --csp
+```
+
+This is all handled in CI properly.
+
 ## Deploying to Android
 This is done automatically via Github Actions.
 
