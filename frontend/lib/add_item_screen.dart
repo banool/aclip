@@ -1,9 +1,9 @@
 import 'package:aclip/constants.dart';
 import 'package:aclip/transaction_result_widget.dart';
+import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'common.dart';
 import 'globals.dart';
 
 class AddItemScreen extends StatefulWidget {
@@ -128,8 +128,8 @@ Widget buildAddItemView(Future addItemFuture) {
                   ]));
         }
         if (snapshot.hasError) {
-          return TransactionResultWidget(
-              TransactionResult(false, null, getErrorString(snapshot.error!)));
+          return TransactionResultWidget(FullTransactionResult(
+              false, null, getErrorString(snapshot.error!), null));
         }
         if (!(sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
             defaultShowTransactionSuccessPage)) {

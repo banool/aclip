@@ -1,8 +1,8 @@
-import 'package:aclip/common.dart';
+import 'package:aptos_sdk_dart/aptos_client_helper.dart';
 import 'package:flutter/material.dart';
 
 class TransactionResultWidget extends StatelessWidget {
-  final TransactionResult transactionResult;
+  final FullTransactionResult transactionResult;
 
   const TransactionResultWidget(this.transactionResult, {Key? key})
       : super(key: key);
@@ -10,7 +10,7 @@ class TransactionResultWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String resultsHeaderString =
-        transactionResult.success ? "🤠  Success  🤠" : "😢  Error  😢";
+        transactionResult.committed ? "Success" : "Error";
     List<Widget> textBodyChildren = [];
     if (transactionResult.transaction != null) {
       textBodyChildren += [
@@ -36,7 +36,13 @@ class TransactionResultWidget extends StatelessWidget {
           indent: 100,
           endIndent: 100,
         ),
-        Text(transactionResult.errorString!)
+        Text(transactionResult.errorString!),
+      ];
+    }
+    if (transactionResult.failedAt != null) {
+      textBodyChildren += [
+        Padding(padding: EdgeInsets.only(top: 20)),
+        Text("Failed at: ${transactionResult.failedAt}"),
       ];
     }
     Widget body = Padding(

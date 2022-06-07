@@ -100,7 +100,7 @@ class ListManager {
 
   Future? fetchDataFuture;
 
-  Future<TransactionResult> initializeList() async {
+  Future<FullTransactionResult> initializeList() async {
     String func = "${moduleAddress.withPrefix()}::$moduleName::initialize_list";
 
     // Build a script function payload that transfers coin.
@@ -111,10 +111,13 @@ class ListManager {
           ..typeArguments = ListBuilder([])
           ..arguments = ListBuilder([]);
 
-    return signBuildWait(scriptFunctionPayloadBuilder);
+    return aptosClientHelper.buildSignSubmitWait(
+        OneOf1<ScriptFunctionPayload>(
+            value: scriptFunctionPayloadBuilder.build()),
+        aptosAccount);
   }
 
-  Future<TransactionResult> obliterateList() async {
+  Future<FullTransactionResult> obliterateList() async {
     String func = "${moduleAddress.withPrefix()}::$moduleName::obliterate";
 
     // Build a script function payload that transfers coin.
@@ -125,7 +128,10 @@ class ListManager {
           ..typeArguments = ListBuilder([])
           ..arguments = ListBuilder([]);
 
-    return signBuildWait(scriptFunctionPayloadBuilder);
+    return aptosClientHelper.buildSignSubmitWait(
+        OneOf1<ScriptFunctionPayload>(
+            value: scriptFunctionPayloadBuilder.build()),
+        aptosAccount);
   }
 
   List<String>? getLinksKeys({bool archived = false}) {
@@ -206,7 +212,7 @@ class ListManager {
     return fetchDataFuture;
   }
 
-  Future<TransactionResult> addItem(
+  Future<FullTransactionResult> addItem(
       String url, bool secret, List<String> tags) async {
     url = url.trim().replaceAll("\n", "");
 
@@ -238,16 +244,19 @@ class ListManager {
           ..typeArguments = ListBuilder([])
           ..arguments = ListBuilder(arguments);
 
-    var result = await signBuildWait(scriptFunctionPayloadBuilder);
+    var result = await aptosClientHelper.buildSignSubmitWait(
+        OneOf1<ScriptFunctionPayload>(
+            value: scriptFunctionPayloadBuilder.build()),
+        aptosAccount);
 
-    if (result.success) {
+    if (result.committed) {
       links![url] = LinkData(archived: false, secret: secret);
     }
 
     return result;
   }
 
-  Future<TransactionResult> removeItem(
+  Future<FullTransactionResult> removeItem(
       String url, LinkData linkData, RemoveItemAction action) async {
     bool archiveArgument;
     String function_ = "${moduleAddress.withPrefix()}::$moduleName::";
@@ -287,9 +296,12 @@ class ListManager {
           ..typeArguments = ListBuilder([])
           ..arguments = ListBuilder(arguments);
 
-    var result = await signBuildWait(scriptFunctionPayloadBuilder);
+    var result = await aptosClientHelper.buildSignSubmitWait(
+        OneOf1<ScriptFunctionPayload>(
+            value: scriptFunctionPayloadBuilder.build()),
+        aptosAccount);
 
-    if (result.success) {
+    if (result.committed) {
       switch (action) {
         case RemoveItemAction.remove:
           links!.remove(url);
@@ -304,51 +316,6 @@ class ListManager {
     }
 
     return result;
-  }
-
-  Future<TransactionResult> signBuildWait(
-      ScriptFunctionPayloadBuilder scriptFunctionPayloadBuilder) async {
-    TransactionPayloadBuilder transactionPayloadBuilder =
-        TransactionPayloadBuilder()
-          ..oneOf = OneOf1(value: scriptFunctionPayloadBuilder.build());
-
-    $UserTransactionRequestBuilder userTransactionBuilder =
-        await aptosClientHelper.generateTransaction(
-            aptosAccount.address, transactionPayloadBuilder);
-
-    SubmitTransactionRequestBuilder submitTransactionRequestBuilder =
-        await aptosClientHelper.signTransaction(
-            aptosAccount, userTransactionBuilder);
-
-    bool committed = false;
-    String? errorString;
-
-    try {
-      PendingTransaction pendingTransaction = await unwrapClientCall(
-          aptosClientHelper.client.getTransactionsApi().submitTransaction(
-              submitTransactionRequest:
-                  submitTransactionRequestBuilder.build()));
-
-      PendingTransactionResult pendingTransactionResult =
-          await aptosClientHelper.waitForTransaction(pendingTransaction.hash);
-
-      committed = pendingTransactionResult.committed;
-      errorString = pendingTransactionResult.getErrorString();
-    } catch (e) {
-      errorString = getErrorString(e);
-    }
-
-    // This is a temporary thing to handle the case where the client says the
-    // call failed, but really it succeeded, and it's just that the API returns
-    // a struct with an illegally empty field according to the OpenAPI spec.
-    if (errorString != null &&
-        errorString.contains("mark \"handle\" with @nullable")) {
-      print("Skipping special OpenAPI thingo error: $errorString");
-      return TransactionResult(true, userTransactionBuilder.build(), null);
-    }
-
-    return TransactionResult(
-        committed, userTransactionBuilder.build(), errorString);
   }
 
   // This assumes the private key is already set.

@@ -1,6 +1,7 @@
 import 'package:aclip/constants.dart';
 import 'package:aclip/globals.dart';
 import 'package:aclip/page_selector.dart';
+import 'package:aptos_sdk_dart/aptos_client_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -62,7 +63,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     updateLinksKeys();
   }
 
-  Future<TransactionResult> removeItem(BuildContext context, String url,
+  Future<FullTransactionResult> removeItem(BuildContext context, String url,
       LinkData linkData, RemoveItemAction removeItemAction) async {
     setState(() {
       removeItemFuture =
@@ -102,8 +103,8 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                               ]));
                     }
                     if (snapshot.hasError) {
-                      return TransactionResultWidget(TransactionResult(
-                          false, null, getErrorString(snapshot.error!)));
+                      return TransactionResultWidget(FullTransactionResult(
+                          false, null, getErrorString(snapshot.error!), null));
                     }
                     if (!(sharedPreferences
                             .getBool(keyShowTransactionSuccessPage) ??

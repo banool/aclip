@@ -1,3 +1,4 @@
+import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
 
 import 'globals.dart';
@@ -20,9 +21,9 @@ class InitializePage extends StatefulWidget {
 class InitializePageState extends State<InitializePage> {
   Future? onPressedFuture;
 
-  Future<TransactionResult> initializeList() async {
+  Future<FullTransactionResult> initializeList() async {
     var result = await listManager.initializeList();
-    if (result.success) {
+    if (result.committed) {
       try {
         await listManager.triggerPull();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(

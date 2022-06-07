@@ -31,6 +31,9 @@ class OfflineWebViewState extends State<OfflineWebView> {
             .then((content) => controller.loadHtmlString(content));
       },
     );
+    // TODO Add custom bottom app bar for archiving, sharing, deleting, going back, refreshing, opening in browser, etc.
+    // TODO: Let user configure which browser to use (check first if iOS has support for configuring a default browser now).
+    // TODO: Add article view mode.
     return SafeArea(
         child: buildTopLevelScaffold(
       context,

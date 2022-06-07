@@ -7,14 +7,14 @@ packages:
       name: aptos_api_dart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.4"
+    version: "0.4.0"
   aptos_sdk_dart:
     dependency: "direct main"
     description:
       name: aptos_sdk_dart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.0"
+    version: "0.4.1"
   archive:
     dependency: transitive
     description:
