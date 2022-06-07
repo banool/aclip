@@ -1,6 +1,3 @@
-import 'package:aclip/constants.dart';
-import 'package:aclip/globals.dart';
-import 'package:aclip/page_selector.dart';
 import 'package:aptos_sdk_dart/aptos_client_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +6,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'add_item_screen.dart';
 import 'common.dart';
+import 'constants.dart';
 import 'download_manager.dart';
+import 'globals.dart';
 import 'list_manager.dart';
 import 'offline_webview.dart';
+import 'page_selector.dart';
 import 'transaction_result_widget.dart';
 
 class ListPage extends StatefulWidget {

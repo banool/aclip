@@ -1,7 +1,7 @@
-import 'package:aclip/page_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'page_selector.dart';
 import 'settings_page.dart';
 
 const double fontSizeLarge = 24;

@@ -24,6 +24,10 @@ class DownloadManager {
   }
 
   Future<DownloadMetadata> download(String url) async {
+    // We short circuit the below for now because it doesn't work due to CORS.
+    // We need to use a CORS proxy or something.
+    return DownloadMetadata(url, 1, null, null);
+
     print("Submitting GET request for $url");
 
     // Make a HEAD request to try to get the page title.

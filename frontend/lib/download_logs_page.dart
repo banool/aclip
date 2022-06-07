@@ -1,9 +1,9 @@
 import 'dart:collection';
 
-import 'package:aclip/globals.dart';
 import 'package:flutter/material.dart';
 
 import 'download_manager.dart';
+import 'globals.dart';
 import 'page_selector.dart';
 
 class DownloadLogsPage extends StatelessWidget {

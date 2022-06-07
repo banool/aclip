@@ -1,12 +1,12 @@
-import 'package:aclip/common.dart';
-import 'package:aclip/globals.dart';
-import 'package:aclip/initialize_page.dart';
-import 'package:aclip/page_selector.dart';
-import 'package:aclip/register_page.dart';
 import 'package:aptos_sdk_dart/hex_string.dart';
 import 'package:flutter/material.dart';
 
+import 'common.dart';
+import 'globals.dart';
+import 'initialize_page.dart';
 import 'list_page.dart';
+import 'page_selector.dart';
+import 'register_page.dart';
 
 class ListPageSelector extends StatefulWidget {
   const ListPageSelector({Key? key}) : super(key: key);

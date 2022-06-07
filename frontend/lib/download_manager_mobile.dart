@@ -2,11 +2,11 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:aclip/constants.dart';
-import 'package:aclip/globals.dart';
 import 'package:flutter/material.dart';
 
+import 'constants.dart';
 import 'download_manager.dart';
+import 'globals.dart';
 import 'ffi.dart';
 
 // TODO: Make this configurable.

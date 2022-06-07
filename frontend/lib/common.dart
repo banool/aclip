@@ -1,9 +1,10 @@
 import 'dart:io';
 
-import 'package:aclip/constants.dart';
-import 'package:aclip/globals.dart';
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
+
+import 'constants.dart';
+import 'globals.dart';
 
 HexString? getPrivateKey() {
   var raw = sharedPreferences.getString(keyPrivateKey);

@@ -1,4 +1,3 @@
-import 'package:aclip/list_manager.dart';
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'constants.dart';
 import 'download_logs_page.dart';
+import 'list_manager.dart';
 import 'globals.dart';
 import 'page_selector.dart';
 
@@ -375,41 +375,53 @@ class BuildInformationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget body = Center(
-        child: Padding(
-            padding: EdgeInsets.only(bottom: 10, left: 20, right: 32, top: 20),
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-              Text(
-                "App name: ${packageInfo.appName}\n",
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                "Package name: ${packageInfo.packageName}\n",
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                "Version: ${packageInfo.version}\n",
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                "Build number: ${packageInfo.buildNumber}\n",
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                "Build signature: ${packageInfo.buildSignature}\n",
-                textAlign: TextAlign.center,
-              ),
-              TextButton(
-                child: Text(
-                  "Bookmark icon created by Freekpik - Flaticon\n",
+    Widget body;
+    if (packageInfo == null) {
+      body = Center(
+          child: Column(children: [
+        Text("Failed to determine build information"),
+        Padding(padding: EdgeInsets.only(top: 20)),
+        Text("$packageInfoRetrieveError")
+      ]));
+    } else {
+      var p = packageInfo!;
+      body = Center(
+          child: Padding(
+              padding:
+                  EdgeInsets.only(bottom: 10, left: 20, right: 32, top: 20),
+              child:
+                  Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+                Text(
+                  "App name: ${p.appName}\n",
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.lightBlue),
                 ),
-                onPressed: () => launchUrl(
-                    Uri.parse("https://www.flaticon.com/free-icons/bookmark")),
-              ),
-            ])));
+                Text(
+                  "Package name: ${p.packageName}\n",
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  "Version: ${p.version}\n",
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  "Build number: ${p.buildNumber}\n",
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  "Build signature: ${p.buildSignature}\n",
+                  textAlign: TextAlign.center,
+                ),
+                TextButton(
+                  child: Text(
+                    "Bookmark icon created by Freekpik - Flaticon\n",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.lightBlue),
+                  ),
+                  onPressed: () => launchUrl(Uri.parse(
+                      "https://www.flaticon.com/free-icons/bookmark")),
+                ),
+              ])));
+    }
     return buildTopLevelScaffold(context, body,
         title: "Build Information", isSubPage: true);
   }

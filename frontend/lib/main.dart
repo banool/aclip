@@ -32,7 +32,12 @@ Future<void> setup({bool pull = true, setupDownloadDirectory = true}) async {
     }
   }
 
-  packageInfo = await PackageInfo.fromPlatform();
+  try {
+    packageInfo = await PackageInfo.fromPlatform();
+  } catch (e) {
+    print("Failed to get package info, continuing: $e");
+    packageInfoRetrieveError = e;
+  }
 
   if (setupDownloadDirectory && !kIsWeb) {
     downloadsDirectory = (await getApplicationDocumentsDirectory()).path;

@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:aclip/add_item_screen.dart';
-import 'package:aclip/common.dart';
-import 'package:aclip/globals.dart';
-import 'package:aclip/list_page_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
+import 'add_item_screen.dart';
+import 'common.dart';
 import 'constants.dart';
+import 'globals.dart';
+import 'list_page_selector.dart';
 import 'settings_page.dart';
 
 class PageSelector extends StatefulWidget {
