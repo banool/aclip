@@ -32,6 +32,11 @@ Future<void> setup({bool pull = true, setupDownloadDirectory = true}) async {
     }
   }
 
+  if (const String.fromEnvironment("IS_BROWSER_EXTENSION").isNotEmpty) {
+    runningAsBrowserExtension = true;
+    print("Running as browser extension");
+  }
+
   try {
     packageInfo = await PackageInfo.fromPlatform();
   } catch (e) {

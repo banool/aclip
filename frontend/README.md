@@ -18,7 +18,7 @@ This will toggle between web and extension build modes. You can also invoke it t
 
 If building for extension, make sure to build it like this:
 ```
-flutter build web --web-renderer html --csp
+flutter build web --dart-define=IS_BROWSER_EXTENSION=true --web-renderer html --csp
 ```
 
 This is all handled in CI properly.

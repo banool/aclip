@@ -13,3 +13,6 @@ bool listManagerSet = false;
 
 PackageInfo? packageInfo;
 Object? packageInfoRetrieveError;
+
+// This will be true if we've detected that the app is running as a browser extension.
+bool runningAsBrowserExtension = false;
