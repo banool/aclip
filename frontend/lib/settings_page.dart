@@ -48,36 +48,33 @@ class SettingsPageState extends State<SettingsPage> {
 
     List<AbstractSettingsTile> linksTiles = [];
     if (!runningAsBrowserExtension) {
-      linksTiles +
-          [
-            SettingsTile.switchTile(
-              initialValue:
-                  sharedPreferences.getBool(keyLaunchInExternalBrowser) ??
-                      defaultLaunchInExternalBrowser,
-              title: getText(
-                "Launch in external browser",
-              ),
-              onToggle: (bool enabled) async {
-                await sharedPreferences.setBool(
-                    keyLaunchInExternalBrowser, enabled);
-                await sharedPreferences.setBool(keyOnlyOfflineLinks, false);
-                setState(() {});
-              },
-            ),
-            SettingsTile.switchTile(
-              initialValue: sharedPreferences.getBool(keyOnlyOfflineLinks) ??
-                  defaultOnlyOfflineLinks,
-              title: getText(
-                "Only open links available offline",
-              ),
-              onToggle: (bool enabled) async {
-                await sharedPreferences.setBool(keyOnlyOfflineLinks, enabled);
-                await sharedPreferences.setBool(
-                    keyLaunchInExternalBrowser, false);
-                setState(() {});
-              },
-            ),
-          ];
+      linksTiles += [
+        SettingsTile.switchTile(
+          initialValue: sharedPreferences.getBool(keyLaunchInExternalBrowser) ??
+              defaultLaunchInExternalBrowser,
+          title: getText(
+            "Launch in external browser",
+          ),
+          onToggle: (bool enabled) async {
+            await sharedPreferences.setBool(
+                keyLaunchInExternalBrowser, enabled);
+            await sharedPreferences.setBool(keyOnlyOfflineLinks, false);
+            setState(() {});
+          },
+        ),
+        SettingsTile.switchTile(
+          initialValue: sharedPreferences.getBool(keyOnlyOfflineLinks) ??
+              defaultOnlyOfflineLinks,
+          title: getText(
+            "Only open links available offline",
+          ),
+          onToggle: (bool enabled) async {
+            await sharedPreferences.setBool(keyOnlyOfflineLinks, enabled);
+            await sharedPreferences.setBool(keyLaunchInExternalBrowser, false);
+            setState(() {});
+          },
+        ),
+      ];
     }
     linksTiles += [
       SettingsTile.navigation(
