@@ -1,3 +1,4 @@
+import 'package:aclip/js_controller.dart';
 import 'package:aptos_sdk_dart/aptos_client_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -32,13 +33,49 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
 
   late AnimationController loadingAnimationController;
 
+  bool? urlInList;
+
   @override
   void initState() {
+    super.initState();
     loadingAnimationController = AnimationController(
         vsync: this, duration: Duration(milliseconds: 1000));
     loadingAnimationController.repeat(reverse: true);
     updateLinksKeys();
-    super.initState();
+    if (runningAsBrowserExtension) {
+      launchAddItemFlowOnStartup();
+    }
+  }
+
+  Future<void> launchAddItemFlowOnStartup() async {
+    if (!(sharedPreferences.getBool(keySaveOnOpen) ?? defaultSaveOnOpen)) {
+      return;
+    }
+    print("Getting current URL");
+    String? url = await getCurrentUrl();
+    if (url == null) {
+      print("Couldn't determine URL, not adding anything to the list");
+      return;
+    }
+    print("Current URL is $url");
+    if (!url.startsWith("http")) {
+      print("Not adding item because it doesn't start with http: $url");
+      return;
+    }
+    updateCurrentUrlInList(url);
+    if (urlInList!) {
+      print("Not adding item because it is already in the list: $url");
+      return;
+    }
+    print("Initiating add item flow on startup as browser extension");
+    await initiateAddItemFlow(context, url: url);
+  }
+
+  Future<void> updateCurrentUrlInList(String url) async {
+    bool inList = listManager.links!.containsKey(url);
+    setState(() {
+      urlInList = inList;
+    });
   }
 
   void updateLinksKeys() {
@@ -48,19 +85,25 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     });
   }
 
-  Future<void> initiateAddItemFlow(BuildContext context) async {
+  Future<void> initiateAddItemFlow(BuildContext context, {String? url}) async {
     await showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         builder: (BuildContext context) {
           return FractionallySizedBox(
-              heightFactor: 0.85, child: AddItemScreen());
+              heightFactor: 0.85, child: AddItemScreen(url: url));
         });
     // TODO: I shouldn't need this, it seems like the API doesn't offer
     // read what you write?
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future.delayed(Duration(milliseconds: 200));
     await listManager.pull();
     updateLinksKeys();
+    setState(() {
+      currentAction = null;
+    });
+    if (runningAsBrowserExtension && url != null) {
+      await updateCurrentUrlInList(url);
+    }
   }
 
   Future<FullTransactionResult> removeItem(BuildContext context, String url,
@@ -115,13 +158,34 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                     return TransactionResultWidget(snapshot.data!);
                   }));
         });
-    var result = await removeItemFuture;
-    if (result.success) {
+    FullTransactionResult result = await removeItemFuture;
+    if (result.committed) {
       final controller = Slidable.of(context);
       controller!.dismiss(ResizeRequest(Duration(milliseconds: 100), () => {}));
       updateLinksKeys();
     }
     return result;
+  }
+
+  Widget getInListInfoWidget() {
+    if (urlInList == null) {
+      return Container();
+    }
+    String message;
+    if (urlInList!) {
+      message = "Current page in list!";
+    } else {
+      message = "Current page not in list";
+    }
+    return Align(
+        alignment: Alignment.bottomRight,
+        child: Container(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            padding: EdgeInsets.all(8),
+            child: Text(
+              message,
+              textAlign: TextAlign.right,
+            )));
   }
 
   @override
@@ -153,11 +217,19 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
       },
       displacement: 2,
     );
+    if (runningAsBrowserExtension) {
+      body = Stack(children: [
+        body,
+        getInListInfoWidget(),
+      ]);
+    }
     return buildTopLevelScaffold(
-        context, Padding(padding: EdgeInsets.all(5), child: body),
-        title: showArchived ? "Archived" : "My List",
-        appBarActions: appBarActions,
-        leadingAppBarButton: leadingAppBarAction);
+      context,
+      Padding(padding: EdgeInsets.all(5), child: body),
+      title: showArchived ? "Archive" : "My List",
+      appBarActions: appBarActions,
+      leadingAppBarButton: leadingAppBarAction,
+    );
   }
 
   Future<void> myLaunchUrl(
@@ -220,7 +292,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
           }
           IconData iconData;
           if (snapshot.hasError) {
-            iconData = Icons.error;
+            iconData = Icons.error_outline;
           } else {
             iconData = Icons.done;
           }

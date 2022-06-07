@@ -1,3 +1,4 @@
+import 'package:aclip/js_controller.dart';
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +8,11 @@ import 'transaction_result_widget.dart';
 import 'globals.dart';
 
 class AddItemScreen extends StatefulWidget {
-  const AddItemScreen({Key? key}) : super(key: key);
+  const AddItemScreen({this.url, Key? key}) : super(key: key);
+
+  // If this is given, we will autopopulate the link field and initiate the
+  // flow to add the item to the list on the backend.
+  final String? url;
 
   @override
   State<AddItemScreen> createState() => AddItemScreenState();
@@ -20,6 +25,15 @@ class AddItemScreenState extends State<AddItemScreen> {
       sharedPreferences.getBool(keySecretByDefault) ?? defaultSecretByDefault;
 
   Future? addItemFuture;
+
+  @override
+  void initState() {
+    if (widget.url != null) {
+      textController.text = widget.url!;
+      triggerAddItem();
+    }
+    super.initState();
+  }
 
   Future<void> setTextFromClipboard() async {
     var data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -43,6 +57,8 @@ class AddItemScreenState extends State<AddItemScreen> {
     TextFormField textField = TextFormField(
       controller: textController,
       keyboardType: TextInputType.url,
+      enableSuggestions: false,
+      autocorrect: false,
       decoration: InputDecoration(
         hintText: 'https://example.com/page.html',
         suffixIcon: IconButton(
@@ -65,6 +81,19 @@ class AddItemScreenState extends State<AddItemScreen> {
         return null;
       },
     );
+    Widget fromUrlBarWidget = runningAsBrowserExtension
+        ? IconButton(
+            onPressed: () async {
+              var url = await getCurrentUrl();
+              if (url == null) {
+                return;
+              }
+              setState(() {
+                textController.text = url;
+              });
+            },
+            icon: Icon(Icons.link))
+        : Container();
     return Padding(
         padding: EdgeInsets.all(20),
         child: Form(
@@ -74,6 +103,7 @@ class AddItemScreenState extends State<AddItemScreen> {
               Row(children: [
                 Text("Enter URL:"),
                 Spacer(),
+                fromUrlBarWidget,
                 IconButton(
                     onPressed: setTextFromClipboard, icon: Icon(Icons.paste))
               ]),

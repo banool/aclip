@@ -18,6 +18,7 @@ const String keyLaunchInExternalBrowser = "keyLaunchInExternalBrowser";
 const String keyForceHttpsOnly = "keyForceHttpsOnly";
 const String keyShowTransactionSuccessPage = "keyShowTransactionSuccessPage";
 const String keyOnlyOfflineLinks = "keyOnlyOfflineLinks";
+const String keySaveOnOpen = "keySaveOnOpen";
 
 // Shared preferences defaults.
 const String defaultAptosNodeUrl = "https://fullnode.devnet.aptoslabs.com";
@@ -27,3 +28,4 @@ const bool defaultLaunchInExternalBrowser = true;
 const bool defaultForceHttpsOnly = false;
 const bool defaultShowTransactionSuccessPage = false;
 const bool defaultOnlyOfflineLinks = false;
+const bool defaultSaveOnOpen = true;

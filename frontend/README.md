@@ -21,6 +21,8 @@ If building for extension, make sure to build it like this:
 flutter build web --dart-define=IS_BROWSER_EXTENSION=true --web-renderer html --csp
 ```
 
+When developing include `--profile --dart-define=Dart2jsOptimization=O0` to see proper debug messages.
+
 This is all handled in CI properly.
 
 ## Deploying to Android

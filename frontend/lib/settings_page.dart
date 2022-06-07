@@ -25,6 +25,89 @@ class SettingsPageState extends State<SettingsPage> {
     EdgeInsetsDirectional margin = const EdgeInsetsDirectional.only(
         start: 15, end: 15, top: 10, bottom: 10);
 
+    SettingsSection? browserExtensionSettingsSection;
+    if (runningAsBrowserExtension) {
+      browserExtensionSettingsSection = SettingsSection(
+        title: Text('Browser Extension'),
+        tiles: [
+          SettingsTile.switchTile(
+            initialValue:
+                sharedPreferences.getBool(keySaveOnOpen) ?? defaultSaveOnOpen,
+            title: getText(
+              "Save links by default when opening extension",
+            ),
+            onToggle: (bool enabled) async {
+              await sharedPreferences.setBool(keySaveOnOpen, enabled);
+              setState(() {});
+            },
+          ),
+        ],
+        margin: margin,
+      );
+    }
+
+    List<AbstractSettingsTile> linksTiles = [];
+    if (!runningAsBrowserExtension) {
+      linksTiles +
+          [
+            SettingsTile.switchTile(
+              initialValue:
+                  sharedPreferences.getBool(keyLaunchInExternalBrowser) ??
+                      defaultLaunchInExternalBrowser,
+              title: getText(
+                "Launch in external browser",
+              ),
+              onToggle: (bool enabled) async {
+                await sharedPreferences.setBool(
+                    keyLaunchInExternalBrowser, enabled);
+                await sharedPreferences.setBool(keyOnlyOfflineLinks, false);
+                setState(() {});
+              },
+            ),
+            SettingsTile.switchTile(
+              initialValue: sharedPreferences.getBool(keyOnlyOfflineLinks) ??
+                  defaultOnlyOfflineLinks,
+              title: getText(
+                "Only open links available offline",
+              ),
+              onToggle: (bool enabled) async {
+                await sharedPreferences.setBool(keyOnlyOfflineLinks, enabled);
+                await sharedPreferences.setBool(
+                    keyLaunchInExternalBrowser, false);
+                setState(() {});
+              },
+            ),
+          ];
+    }
+    linksTiles += [
+      SettingsTile.navigation(
+          title: getText(
+            "Clear cache",
+          ),
+          trailing: Container(),
+          onPressed: (BuildContext context) async {
+            await downloadManager.clearCache();
+            await listManager.pull();
+          }),
+    ];
+
+    if (!runningAsBrowserExtension) {
+      linksTiles += [
+        SettingsTile.navigation(
+            title: getText(
+              "Offline download errors",
+            ),
+            trailing: Container(),
+            onPressed: (BuildContext context) async {
+              return await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DownloadLogsPage(),
+                  ));
+            }),
+      ];
+    }
+
     List<AbstractSettingsSection?> sections = [
       SettingsSection(
         title: Text('Account'),
@@ -75,58 +158,10 @@ class SettingsPageState extends State<SettingsPage> {
       ),
       SettingsSection(
         title: Text('Links'),
-        tiles: [
-          SettingsTile.switchTile(
-            initialValue:
-                sharedPreferences.getBool(keyLaunchInExternalBrowser) ??
-                    defaultLaunchInExternalBrowser,
-            title: getText(
-              "Launch in external browser",
-            ),
-            onToggle: (bool enabled) async {
-              await sharedPreferences.setBool(
-                  keyLaunchInExternalBrowser, enabled);
-              await sharedPreferences.setBool(keyOnlyOfflineLinks, false);
-              setState(() {});
-            },
-          ),
-          SettingsTile.switchTile(
-            initialValue: sharedPreferences.getBool(keyOnlyOfflineLinks) ??
-                defaultOnlyOfflineLinks,
-            title: getText(
-              "Only open links available offline",
-            ),
-            onToggle: (bool enabled) async {
-              await sharedPreferences.setBool(keyOnlyOfflineLinks, enabled);
-              await sharedPreferences.setBool(
-                  keyLaunchInExternalBrowser, false);
-              setState(() {});
-            },
-          ),
-          SettingsTile.navigation(
-              title: getText(
-                "Clear cache",
-              ),
-              trailing: Container(),
-              onPressed: (BuildContext context) async {
-                await downloadManager.clearCache();
-                await listManager.pull();
-              }),
-          SettingsTile.navigation(
-              title: getText(
-                "Offline download errors",
-              ),
-              trailing: Container(),
-              onPressed: (BuildContext context) async {
-                return await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DownloadLogsPage(),
-                    ));
-              }),
-        ],
+        tiles: linksTiles,
         margin: margin,
       ),
+      browserExtensionSettingsSection,
       SettingsSection(
         title: Text('Connection'),
         tiles: [

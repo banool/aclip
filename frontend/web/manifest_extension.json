@@ -1,12 +1,15 @@
 {
   "name": "aclip",
-  "version": "1.1.26",
+  "version": "1.1.27",
   "short_name": "aclip",
   "manifest_version": 3,
   "description": "Browser extension for aclip",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
+  "permissions": [
+    "tabs"
+  ],
   "action": {
     "default_popup": "index.html",
     "default_icon": {

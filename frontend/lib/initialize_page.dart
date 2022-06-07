@@ -22,7 +22,7 @@ class InitializePageState extends State<InitializePage> {
   Future? onPressedFuture;
 
   Future<FullTransactionResult> initializeList() async {
-    var result = await listManager.initializeList();
+    FullTransactionResult result = await listManager.initializeList();
     if (result.committed) {
       try {
         await listManager.triggerPull();

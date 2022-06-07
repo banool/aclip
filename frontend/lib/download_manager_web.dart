@@ -15,7 +15,6 @@ class DownloadManager {
 
   Future<void> triggerDownload(String url,
       {bool forceFromInternet = false}) async {
-    print('sould: ${shouldDownload(url)} ');
     if (!shouldDownload(url) && !forceFromInternet) {
       return;
     }

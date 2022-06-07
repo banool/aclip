@@ -148,13 +148,16 @@ class InheritedPageSelectorController extends InheritedWidget {
 }
 
 // TODO: On web, show a sidebar down the left instead of a bottom tab bar.
-Scaffold buildTopLevelScaffold(BuildContext context, Widget body,
-    {Widget? floatingActionButton,
-    String? title,
-    bool isSubPage = false,
-    List<Widget>? appBarActions,
-    Widget? leadingAppBarButton,
-    BottomAppBar? customBottomAppBar}) {
+Scaffold buildTopLevelScaffold(
+  BuildContext context,
+  Widget body, {
+  Widget? floatingActionButton,
+  String? title,
+  bool isSubPage = false,
+  List<Widget>? appBarActions,
+  Widget? leadingAppBarButton,
+  BottomAppBar? customBottomAppBar,
+}) {
   AppBar? appBar;
   if (title != null) {
     appBar = AppBar(

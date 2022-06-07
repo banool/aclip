@@ -244,7 +244,7 @@ class ListManager {
           ..typeArguments = ListBuilder([])
           ..arguments = ListBuilder(arguments);
 
-    var result = await aptosClientHelper.buildSignSubmitWait(
+    FullTransactionResult result = await aptosClientHelper.buildSignSubmitWait(
         OneOf1<ScriptFunctionPayload>(
             value: scriptFunctionPayloadBuilder.build()),
         aptosAccount);
@@ -296,7 +296,7 @@ class ListManager {
           ..typeArguments = ListBuilder([])
           ..arguments = ListBuilder(arguments);
 
-    var result = await aptosClientHelper.buildSignSubmitWait(
+    FullTransactionResult result = await aptosClientHelper.buildSignSubmitWait(
         OneOf1<ScriptFunctionPayload>(
             value: scriptFunctionPayloadBuilder.build()),
         aptosAccount);
