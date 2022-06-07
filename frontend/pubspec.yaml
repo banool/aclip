@@ -3,7 +3,7 @@ description: Bookmarks, powered by Aptos
 
 publish_to: 'none'
 
-version: 1.1.27+74
+version: 1.1.28+75
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
@@ -46,6 +46,7 @@ flutter_icons:
   android: true
   ios: true
   web: true
+  macos: true
   remove_alpha_ios: true
   image_path: "assets/icons/book.png"
 

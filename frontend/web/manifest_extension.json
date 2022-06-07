@@ -1,6 +1,6 @@
 {
   "name": "aclip",
-  "version": "1.1.27",
+  "version": "1.1.28",
   "short_name": "aclip",
   "manifest_version": 3,
   "description": "Browser extension for aclip",

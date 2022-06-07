@@ -163,6 +163,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
       final controller = Slidable.of(context);
       controller!.dismiss(ResizeRequest(Duration(milliseconds: 100), () => {}));
       updateLinksKeys();
+      await updateCurrentUrlInList(url);
     }
     return result;
   }

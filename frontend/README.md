@@ -23,7 +23,18 @@ flutter build web --dart-define=IS_BROWSER_EXTENSION=true --web-renderer html --
 
 When developing include `--profile --dart-define=Dart2jsOptimization=O0` to see proper debug messages.
 
-This is all handled in CI properly.
+To deploy the extension, for now do that manually:
+```
+./switch_web.sh extension
+flutter build web --dart-define=IS_BROWSER_EXTENSION=true --web-renderer html --csp
+cd build/web
+rm -f index_normal.html manifest_normal.html
+zip -r ~/Downloads/extension.zip .
+```
+
+Then upload that to https://chrome.google.com/webstore/devconsole.
+
+Firefox is not supported right now as this extension stands today because it doesn't support manifest v3: https://blog.mozilla.org/addons/2022/05/18/manifest-v3-in-firefox-recap-next-steps/.
 
 ## Deploying to Android
 This is done automatically via Github Actions.
