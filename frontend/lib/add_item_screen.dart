@@ -164,7 +164,7 @@ Widget buildAddItemView(Future addItemFuture) {
         if (!(sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
             defaultShowTransactionSuccessPage)) {
           Navigator.pop(context);
-          return Container();
+          return SizedBox(width: 1, height: 1);
         }
         return TransactionResultWidget(snapshot.data!);
       });

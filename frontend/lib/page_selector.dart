@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import 'add_item_screen.dart';
@@ -75,10 +76,12 @@ class PageSelectorState extends State<PageSelector> {
 
   @override
   Widget build(BuildContext context) {
-    return InheritedPageSelectorController(
-        pageSelectorController: pageSelectorController,
-        key: childKey,
-        child: pageSelectorController.getCurrentScaffold());
+    return MultiProvider(
+        providers: [Provider(create: (_) => PageSelectorController(refresh))],
+        builder: (BuildContext context, Widget? child) {
+          return Provider.of<PageSelectorController>(context)
+              .getCurrentScaffold();
+        });
   }
 }
 
@@ -125,28 +128,6 @@ class PageSelectorController {
   PageSelectorController(this.refreshParent);
 }
 
-class InheritedPageSelectorController extends InheritedWidget {
-  final PageSelectorController pageSelectorController;
-
-  const InheritedPageSelectorController(
-      {required this.pageSelectorController, required Widget child, Key? key})
-      : super(child: child, key: key);
-
-  @override
-  bool updateShouldNotify(InheritedPageSelectorController oldWidget) {
-    if (pageSelectorController.currentNavBarIndex !=
-        oldWidget.pageSelectorController.currentNavBarIndex) {
-      return true;
-    }
-    return false;
-  }
-
-  static InheritedPageSelectorController of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<InheritedPageSelectorController>()!;
-  }
-}
-
 Scaffold buildTopLevelScaffold(
   BuildContext context,
   Widget body, {
@@ -172,12 +153,12 @@ Scaffold buildTopLevelScaffold(
   }
   BottomNavigationBar? bottomNavigationBar;
   if (!isSubPage) {
-    var p = InheritedPageSelectorController.of(context);
+    PageSelectorController p = Provider.of<PageSelectorController>(context);
     bottomNavigationBar = BottomNavigationBar(
-      items: p.pageSelectorController.getBottomNavBarItems(),
-      currentIndex: p.pageSelectorController.currentNavBarIndex,
+      items: p.getBottomNavBarItems(),
+      currentIndex: p.currentNavBarIndex,
       selectedItemColor: mainColor,
-      onTap: p.pageSelectorController.onNavBarItemTapped,
+      onTap: p.onNavBarItemTapped,
       type: BottomNavigationBarType.fixed,
     );
   }

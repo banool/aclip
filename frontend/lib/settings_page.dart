@@ -1,6 +1,7 @@
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -361,9 +362,7 @@ Future<void> runUpdatePrivateKeyDialog(BuildContext context) async {
     listManager = ListManager.fromSharedPrefs();
     try {
       var f = listManager.triggerPull();
-      InheritedPageSelectorController.of(context)
-          .pageSelectorController
-          .refreshParent();
+      Provider.of<PageSelectorController>(context).refreshParent();
       await f;
       print("Pulled list successfully");
     } catch (e) {

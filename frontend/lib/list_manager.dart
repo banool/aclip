@@ -257,6 +257,8 @@ class ListManager {
       links![url] = LinkData(archived: false, secret: secret);
     }
 
+    downloadManager.triggerDownload(url);
+
     return result;
   }
 

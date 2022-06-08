@@ -3,6 +3,7 @@ import 'package:aptos_sdk_dart/aptos_client_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'add_item_screen.dart';
@@ -290,13 +291,14 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
         future: downloadManager.urlToDownload[url]!,
         builder:
             (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
+          print(snapshot);
           if (snapshot.connectionState != ConnectionState.done) {
             return Text(url);
           }
           if (snapshot.hasError) {
             return Text(url);
           }
-          return Text(snapshot.data!.pageTitle);
+          return Text(snapshot.data!.pageTitle.trim());
         });
 
     String subtitleSuffix = Uri.tryParse(url)?.host ?? url;

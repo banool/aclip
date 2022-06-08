@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'constants.dart';
 import 'download_manager.dart';
@@ -162,8 +163,9 @@ class DownloadManager {
     if (!shouldDownload(url) && !forceFromInternet) {
       return;
     }
-    urlToDownload[url] = download(url, forceFromInternet: forceFromInternet);
-    await urlToDownload[url];
+    var f = download(url, forceFromInternet: forceFromInternet);
+    urlToDownload[url] = f;
+    await f;
   }
 
   Future<DownloadMetadata> download(String url,
@@ -252,8 +254,8 @@ class DownloadManager {
     await removeExpiredFiles(forceAll: true);
     // ignore: avoid_function_literals_in_foreach_calls
     urlToDownload.entries.forEach((element) async {
-      var m = await element.value;
-      await m.wipeFromStorage(element.key);
+      var metadata = await element.value;
+      await metadata.wipeFromStorage(element.key);
     });
     urlToDownload.clear();
     urlToDownloadStatus.clear();

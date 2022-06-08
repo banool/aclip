@@ -1,5 +1,6 @@
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'globals.dart';
 import 'common.dart';
@@ -29,9 +30,7 @@ class InitializePageState extends State<InitializePage> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Successfully initialized list!"),
         ));
-        InheritedPageSelectorController.of(context)
-            .pageSelectorController
-            .refreshParent();
+        Provider.of<PageSelectorController>(context).refreshParent();
       } catch (e) {
         print("Pulling after initialize failed: $e");
         showErrorInDialog(context, e);
