@@ -15,7 +15,7 @@ jobs:
 
     - run: sudo apt update
     - run: sudo apt upgrade -y
-    - run: sudo apt install curl wget clang cmake ninja-build libgtk-3-dev pkg-config libssl-dev build-essential
+    - run: sudo apt install curl wget clang cmake ninja-build libgtk-3-dev pkg-config libssl-dev build-essential gcc
 
     - uses: actions/setup-java@v3
       with:

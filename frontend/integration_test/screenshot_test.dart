@@ -157,8 +157,7 @@ void main() async {
     final Finder continueButton = find.byKey(ValueKey("continueButton"));
     await tester.tap(continueButton);
 
-    await tester.pumpWidget(MyApp());
-    await tester.pumpAndSettle(Duration(seconds: 8));
+    await tester.pumpAndSettle(Duration(seconds: 5));
 
     await takeScreenshot(tester, binding, screenshotNameInfo, "listPage");
 

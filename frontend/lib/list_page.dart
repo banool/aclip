@@ -31,7 +31,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
   late List<String> linksKeys;
   late List<String> linksKeysArchived;
 
-  late AnimationController loadingAnimationController;
+  Map<String, AnimationController> loadingAnimationControllers = {};
 
   bool? urlInList;
 
@@ -40,9 +40,6 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    loadingAnimationController = AnimationController(
-        vsync: this, duration: Duration(milliseconds: 1000));
-    loadingAnimationController.repeat(reverse: true);
     updateLinksKeys();
     if (runningAsBrowserExtension) {
       launchAddItemFlowOnStartup();
@@ -312,16 +309,20 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
         builder:
             (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
+            var lac = AnimationController(
+                vsync: this, duration: Duration(milliseconds: 1000));
+            loadingAnimationControllers[url] = lac;
+            lac.repeat(reverse: true);
             return Align(
                 alignment: Alignment.center,
                 child: RotationTransition(
-                    turns: Tween(begin: 0.0, end: 0.25)
-                        .animate(loadingAnimationController),
+                    turns: Tween(begin: 0.0, end: 0.25).animate(lac),
                     child: AnimatedIcon(
                         size: 22,
                         icon: AnimatedIcons.search_ellipsis,
-                        progress: loadingAnimationController)));
+                        progress: lac)));
           }
+          loadingAnimationControllers[url]?.stop();
           IconData iconData;
           if (snapshot.hasError) {
             iconData = Icons.error_outline;
@@ -425,7 +426,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    loadingAnimationController.dispose();
+    loadingAnimationControllers.values.map((e) => e.dispose());
     super.dispose();
   }
 }
