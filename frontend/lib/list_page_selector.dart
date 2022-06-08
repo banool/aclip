@@ -32,9 +32,7 @@ class ListPageSelectorState extends State<ListPageSelector> {
                   context, Center(child: CircularProgressIndicator()),
                   title: "Loading");
             }
-            if (snapshot.hasError ||
-                listManager.links == null ||
-                listManager.links!.isEmpty) {
+            if (snapshot.hasError || listManager.links == null) {
               print(
                   "Fetch data future error or we're offline and there are no links offlined: ${snapshot.error}");
               return InitializePage(error: snapshot.error ?? Error());

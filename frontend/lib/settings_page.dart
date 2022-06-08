@@ -287,7 +287,7 @@ Future<bool> showChangeStringSharedPrefDialog(
     key: ValueKey("continueButton"),
     child: Text(confirmText),
     onPressed: () async {
-      String newValue = textController.text;
+      String newValue = textController.text.trim();
       if (newValue == "" && !allowEmptyString) {
         print("Not setting empty string for $key");
       } else {

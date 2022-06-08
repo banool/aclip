@@ -12,9 +12,9 @@ I also followed other instructions already that you shouldn't need to do again, 
 
 Note this issue re ffigen: https://github.com/fzyzcjy/flutter_rust_bridge/issues/478.
 
-Make sure to set appropriate value in `android/gradle.properties`:
+Make sure to build android like this:
 ```
-ANDROID_NDK=/Users/dport/Library/Android/sdk/ndk-bundle
+ANDROID_NDK_HOME='/Users/dport/Library/Android/sdk/ndk/24.0.8215888' flutter build appbundle
 ```
 
 I followed the latter part of the android setup to get the latest NDK working, so do something like this:
