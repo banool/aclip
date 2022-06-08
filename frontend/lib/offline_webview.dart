@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import 'common.dart';
 import 'download_manager.dart';
 import 'page_selector.dart';
 
@@ -28,7 +29,9 @@ class OfflineWebViewState extends State<OfflineWebView> {
       onWebViewCreated: (WebViewController controller) async {
         File(getFilePathFromUrl(widget.url))
             .readAsString()
-            .then((content) => controller.loadHtmlString(content));
+            .then((content) => controller.loadHtmlString(content))
+            .onError((error, stackTrace) =>
+                showErrorInDialog(context, error ?? Error()));
       },
     );
     // TODO Add custom bottom app bar for archiving, sharing, deleting, going back, refreshing, opening in browser, etc.
