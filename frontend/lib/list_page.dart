@@ -23,7 +23,7 @@ class ListPage extends StatefulWidget {
 }
 
 class ListPageState extends State<ListPage> with TickerProviderStateMixin {
-  Future? removeItemFuture;
+  Future<FullTransactionResult>? removeItemFuture;
   String? currentAction;
 
   bool showArchived = false;
@@ -35,6 +35,8 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
 
   bool? urlInList;
 
+  late Future<bool> checkOnlineStatusFuture;
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +47,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     if (runningAsBrowserExtension) {
       launchAddItemFlowOnStartup();
     }
+    checkOnlineStatusFuture = canConnectToInternet();
   }
 
   Future<void> launchAddItemFlowOnStartup() async {
@@ -129,8 +132,9 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
         builder: (BuildContext context) {
           return AlertDialog(
               content: FutureBuilder(
-                  future: removeItemFuture,
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  future: removeItemFuture!,
+                  builder: (BuildContext context,
+                      AsyncSnapshot<FullTransactionResult> snapshot) {
                     if (snapshot.connectionState != ConnectionState.done) {
                       return Padding(
                           padding: EdgeInsets.all(20),
@@ -149,16 +153,17 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                       return TransactionResultWidget(FullTransactionResult(
                           false, null, getErrorString(snapshot.error!), null));
                     }
-                    if (!(sharedPreferences
-                            .getBool(keyShowTransactionSuccessPage) ??
-                        defaultShowTransactionSuccessPage)) {
+                    if (snapshot.data!.committed &&
+                        !(sharedPreferences
+                                .getBool(keyShowTransactionSuccessPage) ??
+                            defaultShowTransactionSuccessPage)) {
                       Navigator.pop(context);
                       return Container();
                     }
                     return TransactionResultWidget(snapshot.data!);
                   }));
         });
-    FullTransactionResult result = await removeItemFuture;
+    FullTransactionResult result = await removeItemFuture!;
     if (result.committed) {
       final controller = Slidable.of(context);
       controller!.dismiss(ResizeRequest(Duration(milliseconds: 100), () => {}));
@@ -187,6 +192,28 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
               message,
               textAlign: TextAlign.right,
             )));
+  }
+
+  Widget getOfflineInfoWidget() {
+    return Align(
+        alignment: Alignment.bottomRight,
+        child: FutureBuilder(
+            future: checkOnlineStatusFuture,
+            builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return Container();
+              }
+              if (snapshot.data != null && snapshot.data!) {
+                return Container();
+              }
+              return Container(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  padding: EdgeInsets.all(8),
+                  child: Text(
+                    "Showing offline items only",
+                    textAlign: TextAlign.right,
+                  ));
+            }));
   }
 
   @override
@@ -224,6 +251,10 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
         getInListInfoWidget(),
       ]);
     }
+    body = Stack(children: [
+      body,
+      getOfflineInfoWidget(),
+    ]);
     return buildTopLevelScaffold(
       context,
       Padding(padding: EdgeInsets.all(5), child: body),
@@ -300,6 +331,11 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
           return IconButton(
             icon: Icon(iconData, size: 20),
             onPressed: () async {
+              bool online = await checkOnlineStatusFuture;
+              if (!online) {
+                print("Not redownloading stuff because we're offline");
+                return;
+              }
               var f =
                   downloadManager.triggerDownload(url, forceFromInternet: true);
               setState(() {});

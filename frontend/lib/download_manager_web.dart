@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:dio/dio.dart';
 
 import 'download_manager.dart';
+import 'list_manager.dart';
 
 // The web version of DownloadManager is much simpler. We don't actually
 // download the whole page or store anything, we just submit a request to get
@@ -25,7 +26,7 @@ class DownloadManager {
   Future<DownloadMetadata> download(String url) async {
     // We short circuit the below for now because it doesn't work due to CORS.
     // We need to use a CORS proxy or something.
-    return DownloadMetadata(url, 1, null, null);
+    return DownloadMetadata(url, 1, null, null, true);
 
     print("Submitting GET request for $url");
 
@@ -63,6 +64,11 @@ class DownloadManager {
   Future<void> clearCache() async {
     urlToDownload.clear();
     urlToDownloadStatus.clear();
+  }
+
+  Future<LinkedHashMap<String, LinkData>> populateLinksFromStorage() async {
+    LinkedHashMap<String, LinkData> out = LinkedHashMap();
+    return out;
   }
 }
 

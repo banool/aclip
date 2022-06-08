@@ -151,7 +151,13 @@ class ListManager {
 
   Future<void> pull() async {
     try {
-      links = await fetchData();
+      if (await canConnectToInternet()) {
+        print("Fetching data from internet");
+        links = await fetchData();
+      } else {
+        print("Fetching data from storage because no internet access");
+        links = await downloadManager.populateLinksFromStorage();
+      }
       print("Updated links: $links");
       for (var url in links!.keys) {
         downloadManager.triggerDownload(url);

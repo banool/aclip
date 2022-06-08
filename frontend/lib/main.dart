@@ -24,6 +24,12 @@ Future<void> setup({bool pull = true, setupDownloadDirectory = true}) async {
   // initialize here depend on its values.
   sharedPreferences = await SharedPreferences.getInstance();
 
+  downloadManager = DownloadManager();
+
+  if (setupDownloadDirectory && !kIsWeb) {
+    downloadsDirectory = (await getApplicationDocumentsDirectory()).path;
+  }
+
   HexString? privateKey = getPrivateKey();
   if (privateKey != null) {
     listManager = ListManager.fromSharedPrefs();
@@ -43,12 +49,6 @@ Future<void> setup({bool pull = true, setupDownloadDirectory = true}) async {
     print("Failed to get package info, continuing: $e");
     packageInfoRetrieveError = e;
   }
-
-  if (setupDownloadDirectory && !kIsWeb) {
-    downloadsDirectory = (await getApplicationDocumentsDirectory()).path;
-  }
-
-  downloadManager = DownloadManager();
 
   if (!kIsWeb && Platform.isAndroid) {
     WebView.platform = SurfaceAndroidWebView();

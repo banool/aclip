@@ -19,6 +19,7 @@ const String keyForceHttpsOnly = "keyForceHttpsOnly";
 const String keyShowTransactionSuccessPage = "keyShowTransactionSuccessPage";
 const String keyOnlyOfflineLinks = "keyOnlyOfflineLinks";
 const String keySaveOnOpen = "keySaveOnOpen";
+const String keyCachedUrls = "keyCachedUrls";
 
 // Shared preferences defaults.
 const String defaultAptosNodeUrl = "https://fullnode.devnet.aptoslabs.com";

@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:aclip/globals.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'common.dart';
@@ -37,11 +39,26 @@ class OfflineWebViewState extends State<OfflineWebView> {
     // TODO Add custom bottom app bar for archiving, sharing, deleting, going back, refreshing, opening in browser, etc.
     // TODO: Let user configure which browser to use (check first if iOS has support for configuring a default browser now).
     // TODO: Add article view mode.
-    return SafeArea(
-        child: buildTopLevelScaffold(
-      context,
-      webView,
-      isSubPage: true,
-    ));
+    return ColoredSafeArea(
+        child: buildTopLevelScaffold(context, webView, isSubPage: true));
+  }
+}
+
+// From https://stackoverflow.com/questions/55250493/flutter-system-bar-colors-with-safearea.
+class ColoredSafeArea extends StatelessWidget {
+  final Widget child;
+  final Color? color;
+
+  const ColoredSafeArea({Key? key, required this.child, this.color})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: color ?? Theme.of(context).scaffoldBackgroundColor,
+      child: SafeArea(
+        child: child,
+      ),
+    );
   }
 }

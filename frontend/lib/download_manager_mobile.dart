@@ -8,6 +8,7 @@ import 'constants.dart';
 import 'download_manager.dart';
 import 'globals.dart';
 import 'ffi.dart';
+import 'list_manager.dart';
 
 // TODO: Make this configurable.
 const int cacheTtlSecs = 60 * 60 * 24 * 31;
@@ -63,6 +64,26 @@ extension StorageStuff on DownloadMetadata {
     return "keyImageBase64$fileNameFromUrl";
   }
 
+  static String getArchivedKey(String fileNameFromUrl) {
+    return "keyArchived$fileNameFromUrl";
+  }
+
+  static Future<void> addItemToCachedUrls(String url) async {
+    var urls = sharedPreferences.getStringList(keyCachedUrls) ?? [];
+    urls = urls.toSet().toList();
+    urls.add(url);
+    await sharedPreferences.setStringList(keyCachedUrls, urls);
+    print("Wrote urls to cache as part of adding: $urls");
+  }
+
+  static Future<void> removeItemFromCachedUrls(String url) async {
+    var urls = sharedPreferences.getStringList(keyCachedUrls) ?? [];
+    urls = urls.toSet().toList();
+    urls.remove(url);
+    await sharedPreferences.setStringList(keyCachedUrls, urls);
+    print("Wrote urls to cache as part of removing: $urls");
+  }
+
   Future<void> writeToStorage(String url) async {
     var fileNameFromUrl = getFileNameFromUrl(url);
     await sharedPreferences.setString(
@@ -73,6 +94,12 @@ extension StorageStuff on DownloadMetadata {
       await sharedPreferences.setString(
           getImageBase64Key(fileNameFromUrl), imageBase64!);
     }
+    // TODO: All this ! is pretty sketchy, refactor big time.
+    await sharedPreferences.setBool(
+      getArchivedKey(fileNameFromUrl),
+      listManager.links![url]!.archived,
+    );
+    await addItemToCachedUrls(url);
     print("Wrote metadata to storage for $url");
   }
 
@@ -82,6 +109,8 @@ extension StorageStuff on DownloadMetadata {
     await sharedPreferences
         .remove(getUnixtimeDownloadedSecsKey(fileNameFromUrl));
     await sharedPreferences.remove(getImageBase64Key(fileNameFromUrl));
+    await sharedPreferences.remove(getArchivedKey(fileNameFromUrl));
+    await removeItemFromCachedUrls(url);
     print("Cleared metadata from storage for $url");
   }
 
@@ -116,8 +145,11 @@ extension StorageStuff on DownloadMetadata {
       imageProvider = MemoryImage(base64Decode(imageBase64));
     }
 
-    return DownloadMetadata(
-        pageTitle, unixtimeDownloadedSecs, imageBase64, imageProvider);
+    bool? archived = sharedPreferences.getBool(getArchivedKey(fileNameFromUrl));
+    if (archived == null) return null;
+
+    return DownloadMetadata(pageTitle, unixtimeDownloadedSecs, imageBase64,
+        imageProvider, archived);
   }
 }
 
@@ -199,8 +231,8 @@ class DownloadManager {
 
     Set<String> toRemove = fileNameToPath.keys.toSet();
 
-    // ignore: avoid_function_literals_in_foreach_calls
     if (!forceAll) {
+      // ignore: avoid_function_literals_in_foreach_calls
       urlToDownload.entries.forEach((element) async {
         var url = element.key;
         var metadata = await element.value;
@@ -227,5 +259,20 @@ class DownloadManager {
     urlToDownload.clear();
     urlToDownloadStatus.clear();
     print("Cleared cache");
+  }
+
+  Future<LinkedHashMap<String, LinkData>> populateLinksFromStorage() async {
+    LinkedHashMap<String, LinkData> out = LinkedHashMap();
+    List<String> keys = sharedPreferences.getStringList(keyCachedUrls) ?? [];
+    for (String url in keys) {
+      var fileNameFromUrl = getFileNameFromUrl(url);
+      bool? archived = sharedPreferences
+              .getBool(StorageStuff.getArchivedKey(fileNameFromUrl)) ??
+          false;
+
+      var linkData = LinkData(archived: archived, secret: false);
+      out[url] = linkData;
+    }
+    return out;
   }
 }

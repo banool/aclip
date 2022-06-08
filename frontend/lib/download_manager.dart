@@ -3,6 +3,7 @@
 
 import 'dart:convert';
 
+import 'package:aclip/globals.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart';
@@ -19,9 +20,10 @@ class DownloadMetadata {
   int unixtimeDownloadedSecs;
   String? imageBase64;
   ImageProvider? imageProvider;
+  bool archived;
 
   DownloadMetadata(this.pageTitle, this.unixtimeDownloadedSecs,
-      this.imageBase64, this.imageProvider);
+      this.imageBase64, this.imageProvider, this.archived);
 }
 
 class DownloadStatus {
@@ -74,6 +76,7 @@ Future<DownloadMetadata> getMetadata(String url, String content) async {
     }
   }
 
+  bool archived = listManager.links![url]!.archived;
   return DownloadMetadata(
-      pageTitle, unixtimeDownloadedSecs, base64String, imageProvider);
+      pageTitle, unixtimeDownloadedSecs, base64String, imageProvider, archived);
 }
