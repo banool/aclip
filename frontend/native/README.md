@@ -17,12 +17,7 @@ Make sure to build android like this:
 ANDROID_NDK_HOME='/Users/dport/Library/Android/sdk/ndk/24.0.8215888' flutter build appbundle
 ```
 
-I followed the latter part of the android setup to get the latest NDK working, so do something like this:
-```
-for t in aarch64 arm i386 x86_64; do
-    echo 'INPUT(-lunwind)' > ~/Library/Android/sdk/ndk/24.0.8215888/toolchains/llvm/prebuilt/darwin-x86_64/lib64/clang/14.0.1/lib/linux/$t/libgcc.a
-done
-```
+To get the NDK working, run `./fix_ndk_gcc.sh`.
 
 To regenerate bindings, you might want to take this for a spin:
 ```
