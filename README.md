@@ -18,3 +18,10 @@ cd frontend
 git add pubspec.yaml
 git add web/manifest_extension.json
 ```
+
+Also run this:
+```
+cd frontend/android
+ln -s ../../secrets/key.properties
+ln -s ../../secrets/upload_keystore.jks
+```
