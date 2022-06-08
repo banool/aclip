@@ -13,8 +13,6 @@ import 'common.dart';
 import 'constants.dart';
 import 'globals.dart';
 
-// TODO: This is obviously bad and potentially completely invalidates the
-// encryption, investigate an alternative.
 Uint8List nonce = Uint8List.fromList(List.filled(TweetNaCl.nonceLength, 1));
 
 enum RemoveItemAction {

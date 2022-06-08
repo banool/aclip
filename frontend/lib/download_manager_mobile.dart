@@ -10,10 +10,10 @@ import 'globals.dart';
 import 'ffi.dart';
 import 'list_manager.dart';
 
-// TODO: Make this configurable.
+// See https://github.com/banool/aclip/issues/25.
 const int cacheTtlSecs = 60 * 60 * 24 * 31;
 
-// TODO: Add support for using different user agents based on the platform.
+// See https://github.com/banool/aclip/issues/26.
 Options getOptionsFromSharedPrefs(String targetUrl, String outputPath) {
   bool insecure =
       !(sharedPreferences.getBool(keyForceHttpsOnly) ?? defaultForceHttpsOnly);
@@ -94,7 +94,6 @@ extension StorageStuff on DownloadMetadata {
       await sharedPreferences.setString(
           getImageBase64Key(fileNameFromUrl), imageBase64!);
     }
-    // TODO: All this ! is pretty sketchy, refactor big time.
     await sharedPreferences.setBool(
       getArchivedKey(fileNameFromUrl),
       listManager.links![url]!.archived,

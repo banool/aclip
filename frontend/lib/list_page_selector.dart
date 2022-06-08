@@ -22,8 +22,6 @@ class ListPageSelectorState extends State<ListPageSelector> {
     if (privateKey == null) {
       return RegisterPage();
     } else {
-      // TODO: Handle the case where we have no internet connection but we
-      // do have a bunch of offlined content.
       return FutureBuilder(
           future: listManager.fetchDataFuture,
           builder: (BuildContext context, AsyncSnapshot snapshot) {

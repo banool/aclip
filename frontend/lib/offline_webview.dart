@@ -1,8 +1,6 @@
 import 'dart:io';
 
-import 'package:aclip/globals.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'common.dart';
@@ -36,9 +34,6 @@ class OfflineWebViewState extends State<OfflineWebView> {
                 showErrorInDialog(context, error ?? Error()));
       },
     );
-    // TODO Add custom bottom app bar for archiving, sharing, deleting, going back, refreshing, opening in browser, etc.
-    // TODO: Let user configure which browser to use (check first if iOS has support for configuring a default browser now).
-    // TODO: Add article view mode.
     return ColoredSafeArea(
         child: buildTopLevelScaffold(context, webView, isSubPage: true));
   }

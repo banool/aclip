@@ -147,7 +147,6 @@ class InheritedPageSelectorController extends InheritedWidget {
   }
 }
 
-// TODO: On web, show a sidebar down the left instead of a bottom tab bar.
 Scaffold buildTopLevelScaffold(
   BuildContext context,
   Widget body, {

@@ -93,8 +93,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
           return FractionallySizedBox(
               heightFactor: 0.85, child: AddItemScreen(url: url));
         });
-    // TODO: I shouldn't need this, it seems like the API doesn't offer
-    // read what you write?
+    // This shouldn't be necessary, see https://github.com/banool/aclip/issues/23.
     await Future.delayed(Duration(milliseconds: 200));
     await listManager.pull();
     updateLinksKeys();
@@ -119,7 +118,6 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
           currentAction = "Archiving";
           break;
         case RemoveItemAction.unarchive:
-          // TODO: Handle this case.
           currentAction = "Unarchiving";
           break;
       }
@@ -281,7 +279,6 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
         mode: launchMode,
       );
     } else {
-      // TODO: Find a way to just use the user's browser.
       await Navigator.push(context, MaterialPageRoute(builder: (context) {
         return OfflineWebView(url);
       }));

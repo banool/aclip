@@ -52,8 +52,7 @@ Future<DownloadMetadata> getMetadata(String url, String content) async {
   String? base64String;
   var imageElements = parsed.body?.querySelectorAll("img") ?? [];
   if (imageElements.isNotEmpty) {
-    // TODO: Be smarter here about how we parse the html and how determine
-    // which image is the primo image to use.
+    // See https://github.com/banool/aclip/issues/24.
     for (var element in imageElements) {
       var src = element.attributes["src"];
       if (src == null) continue;

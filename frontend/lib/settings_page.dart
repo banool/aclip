@@ -259,6 +259,7 @@ Text getText(String s, {bool larger = false}) {
   );
 }
 
+// See https://github.com/banool/aclip/issues/28.
 Future<bool> showChangeStringSharedPrefDialog(
     BuildContext context, String title, String key, String? defaultValue,
     {String cancelText = "Cancel",
@@ -269,8 +270,6 @@ Future<bool> showChangeStringSharedPrefDialog(
   String currentValue = sharedPreferences.getString(key) ?? defaultValue ?? "";
   TextEditingController textController =
       TextEditingController(text: currentValue);
-  // TODO allow this function to take in something that changes the type
-  // of text it is, e.g. for URL vs regular stuff.
   TextField textField = TextField(
     key: ValueKey("myTextField"),
     controller: textController,
@@ -339,7 +338,7 @@ bool validatePrivateKey(BuildContext context, String value) {
   // ignore: prefer_is_empty
   if (value.length == 0) return true;
   try {
-    // TODO: Buff HexString.fromString so it does this check.
+    // See https://github.com/banool/aptos_sdk_dart/issues/1.
     var hexString = HexString.fromString(value);
     AptosAccount.fromPrivateKeyHexString(hexString);
     print("Private key was valid");
