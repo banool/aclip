@@ -38,12 +38,12 @@ class TransactionResultWidget extends StatelessWidget {
         ),
         Text(transactionResult.errorString!),
       ];
-    }
-    if (transactionResult.failedAt != null) {
-      textBodyChildren += [
-        Padding(padding: EdgeInsets.only(top: 20)),
-        Text("Failed at: ${transactionResult.failedAt}"),
-      ];
+      if (transactionResult.failedAt != null) {
+        textBodyChildren += [
+          Padding(padding: EdgeInsets.only(top: 20)),
+          Text("Failed at: ${transactionResult.failedAt}"),
+        ];
+      }
     }
     Widget body = Padding(
         padding: EdgeInsets.all(20),

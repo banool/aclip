@@ -48,6 +48,10 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
       launchAddItemFlowOnStartup();
     }
     checkOnlineStatusFuture = canConnectToInternet();
+
+    listManager.addListener(() {
+      updateLinksKeys();
+    });
   }
 
   Future<void> launchAddItemFlowOnStartup() async {
@@ -82,10 +86,13 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
   }
 
   void updateLinksKeys() {
-    setState(() {
-      linksKeys = listManager.getLinksKeys(archived: false)!;
-      linksKeysArchived = listManager.getLinksKeys(archived: true)!;
-    });
+    if (mounted) {
+      print("Updating links keys");
+      setState(() {
+        linksKeys = listManager.getLinksKeys(archived: false)!;
+        linksKeysArchived = listManager.getLinksKeys(archived: true)!;
+      });
+    }
   }
 
   Future<void> initiateAddItemFlow(BuildContext context, {String? url}) async {
@@ -99,7 +106,6 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     // This shouldn't be necessary, see https://github.com/banool/aclip/issues/23.
     await Future.delayed(Duration(milliseconds: 200));
     await listManager.pull();
-    updateLinksKeys();
     setState(() {
       currentAction = null;
     });
@@ -156,7 +162,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                                 .getBool(keyShowTransactionSuccessPage) ??
                             defaultShowTransactionSuccessPage)) {
                       Navigator.pop(context);
-                      return Container();
+                      return SizedBox(width: 10, height: 10);
                     }
                     return TransactionResultWidget(snapshot.data!);
                   }));
@@ -165,7 +171,6 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     if (result.committed) {
       final controller = Slidable.of(context);
       controller!.dismiss(ResizeRequest(Duration(milliseconds: 100), () => {}));
-      updateLinksKeys();
       await updateCurrentUrlInList(url);
     }
     return result;
@@ -241,7 +246,6 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
       child: listView,
       onRefresh: () async {
         await listManager.pull();
-        updateLinksKeys();
       },
       displacement: 2,
     );
@@ -315,6 +319,8 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                   icon: AnimatedIcons.search_ellipsis,
                   progress: lac)));
     } else {
+      loadingAnimationControllers[url]?.dispose();
+      loadingAnimationControllers.remove(url);
       IconData iconData;
       if (downloadManagerResult.success) {
         DownloadMetadata downloadMetadata =

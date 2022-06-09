@@ -5,6 +5,7 @@ import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/json_object.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:one_of/one_of.dart';
 import 'package:pinenacl/tweetnacl.dart';
 import 'package:pinenacl/x25519.dart';
@@ -84,7 +85,7 @@ class FetchDataDummy {
   FetchDataDummy({this.error});
 }
 
-class ListManager {
+class ListManager extends ChangeNotifier {
   final AptosClientHelper aptosClientHelper =
       AptosClientHelper.fromDio(Dio(BaseOptions(
     baseUrl:
@@ -167,6 +168,7 @@ class ListManager {
       for (var url in links!.keys) {
         downloadManager.triggerDownload(url);
       }
+      notifyListeners();
     } on DioError catch (e) {
       print(getErrorString(e));
       rethrow;
@@ -263,6 +265,7 @@ class ListManager {
 
     if (result.committed) {
       links![url] = LinkData(archived: false, secret: secret);
+      notifyListeners();
     }
 
     downloadManager.triggerDownload(url);
@@ -327,6 +330,7 @@ class ListManager {
           links![url]!.archived = false;
           break;
       }
+      notifyListeners();
     }
 
     return result;
