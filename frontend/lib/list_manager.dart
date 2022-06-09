@@ -77,6 +77,13 @@ class LinkData {
   }
 }
 
+// This is all to avoid https://stackoverflow.com/questions/58451500/avoid-single-frame-waiting-state-when-passing-already-completed-future-to-a-futu
+class FetchDataDummy {
+  Object? error;
+
+  FetchDataDummy({this.error});
+}
+
 class ListManager {
   final AptosClientHelper aptosClientHelper =
       AptosClientHelper.fromDio(Dio(BaseOptions(
@@ -96,7 +103,7 @@ class ListManager {
   // case that the link was a secret.
   LinkedHashMap<String, LinkData>? links;
 
-  Future? fetchDataFuture;
+  Future<FetchDataDummy>? fetchDataFuture;
 
   Future<FullTransactionResult> initializeList() async {
     String func = "${moduleAddress.withPrefix()}::$moduleName::initialize_list";
@@ -147,7 +154,7 @@ class ListManager {
     return "0x${moduleAddress.noPrefix()}::$moduleName::${structName ?? moduleName}";
   }
 
-  Future<void> pull() async {
+  Future<FetchDataDummy> pull() async {
     try {
       if (await canConnectToInternet()) {
         print("Fetching data from internet");
@@ -166,6 +173,7 @@ class ListManager {
     } catch (e) {
       rethrow;
     }
+    return FetchDataDummy();
   }
 
   // We don't fetch values for the keys here (therefore no tags).
@@ -211,9 +219,9 @@ class ListManager {
     return out;
   }
 
-  Future<void> triggerPull() async {
+  Future<FetchDataDummy> triggerPull() async {
     fetchDataFuture = pull();
-    return fetchDataFuture;
+    return fetchDataFuture!;
   }
 
   Future<FullTransactionResult> addItem(

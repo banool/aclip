@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:aclip/js_controller.dart';
 import 'package:aptos_sdk_dart/aptos_client_helper.dart';
 import 'package:flutter/foundation.dart';
@@ -230,8 +232,10 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     Widget listView = ListView.builder(
         itemCount: l.length,
         itemBuilder: (context, index) {
-          String key = l.elementAt(index);
-          return buildListItem(key, listManager.links![key]!);
+          return Builder(builder: ((context) {
+            String key = l.elementAt(index);
+            return buildListItem(context, key, listManager.links![key]!);
+          }));
         });
     Widget body = RefreshIndicator(
       child: listView,
@@ -286,92 +290,40 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     }
   }
 
-  Widget buildListItem(String url, LinkData linkData) {
-    Widget title = FutureBuilder(
-        future: downloadManager.urlToDownload[url]!,
-        builder:
-            (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
-          print(snapshot);
-          if (snapshot.connectionState != ConnectionState.done) {
-            return Text(url);
-          }
-          if (snapshot.hasError) {
-            return Text(url);
-          }
-          return Text(snapshot.data!.pageTitle.trim());
-        });
+  Widget buildListItem(BuildContext context, String url, LinkData linkData) {
+    DownloadManagerResult? downloadManagerResult =
+        context.select<DownloadManager, DownloadManagerResult?>(
+            (downloadManager) => downloadManager.urlToDownloadMetadata[url]);
 
-    String subtitleSuffix = Uri.tryParse(url)?.host ?? url;
+    Widget nothing = SizedBox(width: 10, height: 10);
 
-    Widget downloadingIndicator = FutureBuilder(
-        future: downloadManager.urlToDownload[url]!,
-        builder:
-            (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            var lac = AnimationController(
-                vsync: this, duration: Duration(milliseconds: 1000));
-            loadingAnimationControllers[url] = lac;
-            lac.repeat(reverse: true);
-            return Align(
-                alignment: Alignment.center,
-                child: RotationTransition(
-                    turns: Tween(begin: 0.0, end: 0.25).animate(lac),
-                    child: AnimatedIcon(
-                        size: 22,
-                        icon: AnimatedIcons.search_ellipsis,
-                        progress: lac)));
-          }
-          loadingAnimationControllers[url]?.stop();
-          IconData iconData;
-          if (snapshot.hasError) {
-            iconData = Icons.error_outline;
-          } else {
-            iconData = Icons.done;
-          }
-          return IconButton(
-            icon: Icon(iconData, size: 20),
-            onPressed: () async {
-              bool online = await checkOnlineStatusFuture;
-              if (!online) {
-                print("Not redownloading stuff because we're offline");
-                return;
-              }
-              var f =
-                  downloadManager.triggerDownload(url, forceFromInternet: true);
-              setState(() {});
-              await f;
-              setState(() {});
-            },
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints(),
-            alignment: Alignment.center,
-          );
-        });
+    Widget title = Text(url.trim());
+    Widget downloadingIndicator;
+    Widget trailing = nothing;
 
-    Widget subtitle = Row(
-      children: [
-        Text(subtitleSuffix),
-        Padding(padding: EdgeInsets.only(left: 5)),
-        downloadingIndicator
-      ],
-    );
-
-    Widget trailing = FutureBuilder(
-        future: downloadManager.urlToDownload[url]!,
-        builder:
-            (BuildContext context, AsyncSnapshot<DownloadMetadata> snapshot) {
-          var nothing = SizedBox(width: 10, height: 10);
-          if (snapshot.connectionState != ConnectionState.done) {
-            return nothing;
-          }
-          if (snapshot.hasError) {
-            return nothing;
-          }
-          if (snapshot.data!.imageProvider == null) {
-            return nothing;
-          }
-          return Image(
-            image: snapshot.data!.imageProvider!,
+    if (downloadManagerResult == null) {
+      var lac = AnimationController(
+          vsync: this, duration: Duration(milliseconds: 1000));
+      loadingAnimationControllers[url] = lac;
+      lac.repeat(reverse: true);
+      downloadingIndicator = Align(
+          alignment: Alignment.center,
+          child: RotationTransition(
+              turns: Tween(begin: 0.0, end: 0.25).animate(lac),
+              child: AnimatedIcon(
+                  size: 22,
+                  icon: AnimatedIcons.search_ellipsis,
+                  progress: lac)));
+    } else {
+      IconData iconData;
+      if (downloadManagerResult.success) {
+        DownloadMetadata downloadMetadata =
+            downloadManagerResult.downloadMetadata!;
+        title = Text(downloadMetadata.pageTitle.trim());
+        iconData = Icons.done;
+        if (downloadMetadata.imageProvider != null) {
+          trailing = Image(
+            image: downloadMetadata.imageProvider!,
             loadingBuilder: (context, child, loadingProgress) =>
                 (loadingProgress == null)
                     ? FractionallySizedBox(widthFactor: 0.35, child: child)
@@ -380,7 +332,38 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
               return nothing;
             },
           );
-        });
+        }
+      } else {
+        iconData = Icons.error_outline;
+      }
+      downloadingIndicator = IconButton(
+          padding: EdgeInsets.zero,
+          constraints: BoxConstraints(),
+          alignment: Alignment.center,
+          icon: Icon(iconData, size: 20),
+          onPressed: () async {
+            bool online = await checkOnlineStatusFuture;
+            if (!online) {
+              print("Not redownloading stuff because we're offline");
+              return;
+            }
+            var f =
+                downloadManager.triggerDownload(url, forceFromInternet: true);
+            setState(() {});
+            await f;
+            setState(() {});
+          });
+    }
+
+    String subtitleSuffix = Uri.tryParse(url)?.host ?? url;
+
+    Widget subtitle = Row(
+      children: [
+        Text(subtitleSuffix),
+        Padding(padding: EdgeInsets.only(left: 5)),
+        downloadingIndicator
+      ],
+    );
 
     return Card(
         child: Slidable(

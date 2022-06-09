@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:aclip/download_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,7 @@ import 'add_item_screen.dart';
 import 'common.dart';
 import 'constants.dart';
 import 'globals.dart';
+import 'list_manager.dart';
 import 'list_page_selector.dart';
 import 'settings_page.dart';
 
@@ -79,8 +81,18 @@ class PageSelectorState extends State<PageSelector> {
     return MultiProvider(
         providers: [Provider(create: (_) => PageSelectorController(refresh))],
         builder: (BuildContext context, Widget? child) {
-          return Provider.of<PageSelectorController>(context)
-              .getCurrentScaffold();
+          return FutureProvider<FetchDataDummy?>.value(
+              value: listManager.fetchDataFuture,
+              initialData: null,
+              catchError: (BuildContext context, Object? error) {
+                return FetchDataDummy(error: error);
+              },
+              builder: (_, __) {
+                return ChangeNotifierProvider.value(
+                    value: downloadManager,
+                    child: Provider.of<PageSelectorController>(context)
+                        .getCurrentScaffold());
+              });
         });
   }
 }

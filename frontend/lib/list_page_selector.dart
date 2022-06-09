@@ -1,3 +1,4 @@
+import 'package:aclip/list_manager.dart';
 import 'package:aptos_sdk_dart/hex_string.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,21 +24,27 @@ class ListPageSelectorState extends State<ListPageSelector> {
     if (privateKey == null) {
       return RegisterPage();
     } else {
-      return FutureBuilder(
-          future: listManager.fetchDataFuture,
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return buildTopLevelScaffold(
-                  context, Center(child: CircularProgressIndicator()),
-                  title: "Loading");
-            }
-            if (snapshot.hasError || listManager.links == null) {
-              print(
-                  "Fetch data future error or we're offline and there are no links offlined: ${snapshot.error}");
-              return InitializePage(error: snapshot.error ?? Error());
-            }
-            return ListPage();
-          });
+      return Consumer(builder: ((context, FetchDataDummy? dummy, _) {
+        print("Building consumer arm of ListPageSelector");
+        // Future not complete yet.
+        if (dummy == null) {
+          return buildTopLevelScaffold(
+              context, Center(child: CircularProgressIndicator()),
+              title: "Loading");
+        }
+
+        if (dummy.error != null) {
+          print("Fetch data future error: ${dummy.error}");
+          return InitializePage(error: dummy.error!);
+        }
+
+        if (listManager.links == null) {
+          print("No links yet for some reason");
+          return InitializePage(error: Error());
+        }
+
+        return ListPage();
+      }));
     }
   }
 }

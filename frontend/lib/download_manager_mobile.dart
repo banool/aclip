@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -153,10 +154,42 @@ extension StorageStuff on DownloadMetadata {
   }
 }
 
-class DownloadManager {
-  LinkedHashMap<String, Future<DownloadMetadata>> urlToDownload =
+class DownloadManagerResult {
+  DownloadMetadata? downloadMetadata;
+  Object? error;
+
+  bool get success {
+    return error == null;
+  }
+
+  factory DownloadManagerResult.create(
+      DownloadMetadata? downloadMetadata, Object? error) {
+    if (downloadMetadata == null && error == null) {
+      throw "One must be set, not zero";
+    }
+    if (downloadMetadata != null && error != null) {
+      throw "One must be set, not both";
+    }
+    return DownloadManagerResult(downloadMetadata, error);
+  }
+
+  @override
+  String toString() {
+    return "DownloadManagerResult($downloadMetadata, $error)";
+  }
+
+  DownloadManagerResult(this.downloadMetadata, this.error);
+}
+
+class DownloadManager extends ChangeNotifier {
+  // State of this map based on the download state:
+  // - Downloading: Key (URL) present with null value.
+  // - Downloaded: Key present with DownloadManagerResult(downloadMetadata).
+  // - Error: Key present with DownloadManagerResult(error).
+  // This is wrapped in a ValueListenable so downstream widgets can subscribe
+  // to changes to it.
+  LinkedHashMap<String, DownloadManagerResult?> urlToDownloadMetadata =
       LinkedHashMap();
-  LinkedHashMap<String, DownloadStatus> urlToDownloadStatus = LinkedHashMap();
 
   Future<void> triggerDownload(String url,
       {bool forceFromInternet = false}) async {
@@ -164,8 +197,21 @@ class DownloadManager {
       return;
     }
     var f = download(url, forceFromInternet: forceFromInternet);
-    urlToDownload[url] = f;
-    await f;
+    urlToDownloadMetadata[url] = null;
+    notifyListeners();
+
+    DownloadMetadata? downloadMetadata;
+    Object? error;
+    try {
+      downloadMetadata = await f;
+      print("Successfully downloaded $url");
+    } catch (e) {
+      print("Failed to download $url: $e");
+      error = e;
+    }
+    urlToDownloadMetadata[url] =
+        DownloadManagerResult.create(downloadMetadata, error);
+    notifyListeners();
   }
 
   Future<DownloadMetadata> download(String url,
@@ -182,18 +228,8 @@ class DownloadManager {
     print("Downloading $url");
 
     // Download the page.
-    urlToDownloadStatus[url] = DownloadStatus(done: false);
     String outputPath;
-    try {
-      outputPath = await _downloadPage(url);
-      urlToDownloadStatus[url]!.done = true;
-      print("Successfully downloaded $url");
-    } catch (e) {
-      urlToDownloadStatus[url]!.done = true;
-      urlToDownloadStatus[url]!.error = e;
-      print("Failed to download $url: $e");
-      rethrow;
-    }
+    outputPath = await _downloadPage(url);
 
     // Pull the metadata.
     String content = await File(outputPath).readAsString();
@@ -206,13 +242,10 @@ class DownloadManager {
   }
 
   bool shouldDownload(String url) {
-    if (!urlToDownload.containsKey(url)) {
+    if (!urlToDownloadMetadata.containsKey(url)) {
       return true;
     }
-    if (!urlToDownloadStatus.containsKey(url)) {
-      return true;
-    }
-    if (urlToDownloadStatus[url]!.error != null) {
+    if (!urlToDownloadMetadata[url]!.success) {
       return true;
     }
     return false;
@@ -234,9 +267,13 @@ class DownloadManager {
 
     if (!forceAll) {
       // ignore: avoid_function_literals_in_foreach_calls
-      urlToDownload.entries.forEach((element) async {
+      urlToDownloadMetadata.entries.forEach((element) async {
         var url = element.key;
-        var metadata = await element.value;
+        if (element.value == null || !element.value!.success) {
+          print("Ignoring $url because value is ${element.value}");
+          return;
+        }
+        var metadata = element.value!.downloadMetadata!;
         if (metadata.unixtimeDownloadedSecs >
             (DateTime.now().millisecondsSinceEpoch ~/ 1000) - cacheTtlSecs) {
           toRemove.remove(getFileNameFromUrl(url));
@@ -253,12 +290,16 @@ class DownloadManager {
   Future<void> clearCache() async {
     await removeExpiredFiles(forceAll: true);
     // ignore: avoid_function_literals_in_foreach_calls
-    urlToDownload.entries.forEach((element) async {
-      var metadata = await element.value;
+    urlToDownloadMetadata.entries.forEach((element) async {
+      var url = element.key;
+      if (element.value == null || !element.value!.success) {
+        print("Ignoring $url because value is ${element.value}");
+        return;
+      }
+      var metadata = element.value!.downloadMetadata!;
       await metadata.wipeFromStorage(element.key);
     });
-    urlToDownload.clear();
-    urlToDownloadStatus.clear();
+    urlToDownloadMetadata.clear();
     print("Cleared cache");
   }
 

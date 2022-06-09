@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 
-import 'download_manager.dart';
 import 'globals.dart';
 import 'page_selector.dart';
 
@@ -13,9 +12,10 @@ class DownloadLogsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget body;
     LinkedHashMap<String, Object> errors = LinkedHashMap();
-    downloadManager.urlToDownloadStatus.forEach((key, DownloadStatus value) {
-      if (value.error != null) {
-        errors[key] = value.error!;
+    downloadManager.urlToDownloadMetadata.forEach((key, value) {
+      var error = value?.error;
+      if (error != null) {
+        errors[key] = error;
       }
     });
     if (errors.isEmpty) {
