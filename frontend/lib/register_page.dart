@@ -1,3 +1,4 @@
+import 'package:aclip/common.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -19,7 +20,7 @@ class RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     Widget body = Padding(
         padding: EdgeInsets.all(30),
-        child: Column(
+        child: getScrollableColumn(Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -27,13 +28,29 @@ class RegisterPageState extends State<RegisterPage> {
               style: TextStyle(
                   fontSize: fontSizeLarge, fontWeight: FontWeight.w700),
             ),
-            Padding(padding: EdgeInsets.only(top: 30)),
+            Padding(padding: EdgeInsets.only(top: 25)),
             Text(
               "aclip is a bookmarking app powered by the Aptos Blockchain. "
               "In order to use aclip you must have an account on Aptos. ",
               style: TextStyle(fontSize: fontSize),
             ),
-            Padding(padding: EdgeInsets.only(top: 50)),
+            Padding(padding: EdgeInsets.only(top: 25)),
+            Text(
+              "I already have an account:",
+              style: TextStyle(
+                fontSize: fontSize,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            Padding(padding: EdgeInsets.only(top: 15)),
+            ElevatedButton(
+                key: ValueKey("enterPrivateKeyButton"),
+                onPressed: () async => await runUpdatePrivateKeyDialog(context),
+                child: Text(
+                  "Enter private key",
+                  style: TextStyle(fontSize: fontSize),
+                )),
+            Padding(padding: EdgeInsets.only(top: 25)),
             Text(
               "I need to make an account:",
               style: TextStyle(
@@ -41,7 +58,7 @@ class RegisterPageState extends State<RegisterPage> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            Padding(padding: EdgeInsets.only(top: 20)),
+            Padding(padding: EdgeInsets.only(top: 15)),
             InkWell(
               child: Text(
                 "Create an Aptos account",
@@ -50,24 +67,8 @@ class RegisterPageState extends State<RegisterPage> {
               onTap: () => launchUrl(Uri.parse(
                   "https://aptos.dev/tutorials/building-wallet-extension")),
             ),
-            Padding(padding: EdgeInsets.only(top: 50)),
-            Text(
-              "I already have an account:",
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Padding(padding: EdgeInsets.only(top: 20)),
-            ElevatedButton(
-                key: ValueKey("enterPrivateKeyButton"),
-                onPressed: () async => await runUpdatePrivateKeyDialog(context),
-                child: Text(
-                  "Enter private key",
-                  style: TextStyle(fontSize: fontSize),
-                )),
           ],
-        ));
+        )));
     return buildTopLevelScaffold(context, body, title: "Setup");
   }
 }

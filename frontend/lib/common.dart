@@ -33,10 +33,18 @@ Future<void> myShowDialog(BuildContext context, Widget body,
 }
 
 Future<bool> canConnectToInternet() async {
+  if (runningAsBrowserExtension) {
+    return true;
+  }
   try {
     final result = await InternetAddress.lookup('example.com');
     return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
   } on SocketException catch (_) {
     return false;
   }
+}
+
+Widget getScrollableColumn(Column child) {
+  return CustomScrollView(
+      slivers: [SliverFillRemaining(hasScrollBody: false, child: child)]);
 }

@@ -20,6 +20,11 @@ Future<void> setup({bool pull = true, setupDownloadDirectory = true}) async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
+  if (const String.fromEnvironment("IS_BROWSER_EXTENSION").isNotEmpty) {
+    runningAsBrowserExtension = true;
+    print("Running as browser extension");
+  }
+
   // Load shared preferences. We do this first because later things we
   // initialize here depend on its values.
   sharedPreferences = await SharedPreferences.getInstance();
@@ -38,16 +43,15 @@ Future<void> setup({bool pull = true, setupDownloadDirectory = true}) async {
     }
   }
 
-  if (const String.fromEnvironment("IS_BROWSER_EXTENSION").isNotEmpty) {
-    runningAsBrowserExtension = true;
-    print("Running as browser extension");
-  }
-
-  try {
-    packageInfo = await PackageInfo.fromPlatform();
-  } catch (e) {
-    print("Failed to get package info, continuing: $e");
-    packageInfoRetrieveError = e;
+  if (!runningAsBrowserExtension) {
+    try {
+      packageInfo = await PackageInfo.fromPlatform();
+    } catch (e) {
+      print("Failed to get package info, continuing: $e");
+      packageInfoRetrieveError = e;
+    }
+  } else {
+    packageInfoRetrieveError = "Running as browser extension";
   }
 
   if (!kIsWeb && Platform.isAndroid) {

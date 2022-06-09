@@ -81,7 +81,7 @@ class InitializePageState extends State<InitializePage> {
     }
     Widget body = Padding(
         padding: EdgeInsets.all(30),
-        child: Column(
+        child: getScrollableColumn(Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -89,7 +89,7 @@ class InitializePageState extends State<InitializePage> {
               style: TextStyle(
                   fontSize: fontSizeLarge, fontWeight: FontWeight.w700),
             ),
-            Padding(padding: EdgeInsets.only(top: 30)),
+            Padding(padding: EdgeInsets.only(top: 25)),
             Text(
               "Before using aclip, you must initialize a list on your account. "
               "Creating your list, as well as adding and removing items from it, "
@@ -99,9 +99,9 @@ class InitializePageState extends State<InitializePage> {
               "of your own data.",
               style: TextStyle(fontSize: fontSize),
             ),
-            Padding(padding: EdgeInsets.only(top: 40)),
+            Padding(padding: EdgeInsets.only(top: 30)),
             lower,
-            Padding(padding: EdgeInsets.only(top: 40)),
+            Padding(padding: EdgeInsets.only(top: 30)),
             Text(
               "I have already initialized a list:",
               style: TextStyle(
@@ -116,7 +116,7 @@ class InitializePageState extends State<InitializePage> {
               "whether you already have a list and getting its content.",
               style: TextStyle(fontSize: fontSize - 3),
             ),
-            Padding(padding: EdgeInsets.only(top: 10)),
+            Padding(padding: EdgeInsets.only(top: 20)),
             ElevatedButton(
                 onPressed: () async =>
                     await showErrorInDialog(context, widget.error),
@@ -128,7 +128,7 @@ class InitializePageState extends State<InitializePage> {
                   style: TextStyle(fontSize: fontSize - 2),
                 ))
           ],
-        ));
+        )));
     return buildTopLevelScaffold(context, body, title: "Setup");
   }
 }
