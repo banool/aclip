@@ -361,8 +361,9 @@ Future<void> runUpdatePrivateKeyDialog(BuildContext context) async {
     print("Private key set");
     listManager = ListManager.fromSharedPrefs();
     try {
+      Provider.of<PageSelectorController>(context, listen: false)
+          .refreshParent();
       var f = listManager.triggerPull();
-      Provider.of<PageSelectorController>(context).refreshParent();
       await f;
       print("Pulled list successfully");
     } catch (e) {

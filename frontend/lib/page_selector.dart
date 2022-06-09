@@ -73,26 +73,35 @@ class PageSelectorState extends State<PageSelector> {
     setState(() {
       // This forces the child to rebuild.
       childKey = ValueKey(childKey.value + 1);
+      print("Refreshing parent");
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-        providers: [Provider(create: (_) => PageSelectorController(refresh))],
+        providers: [
+          Provider(create: (_) => PageSelectorController(refresh)),
+          ChangeNotifierProvider.value(value: downloadManager)
+        ],
         builder: (BuildContext context, Widget? child) {
+          var pageSelectorController =
+              Provider.of<PageSelectorController>(context);
+          if (getPrivateKey() == null) {
+            print("Returning body without fetch data provider");
+            return pageSelectorController.getCurrentScaffold();
+          }
+          print("Returning body with fetch data provider");
           return FutureProvider<FetchDataDummy?>.value(
-              value: listManager.fetchDataFuture,
-              initialData: null,
-              catchError: (BuildContext context, Object? error) {
-                return FetchDataDummy(error: error);
-              },
-              builder: (_, __) {
-                return ChangeNotifierProvider.value(
-                    value: downloadManager,
-                    child: Provider.of<PageSelectorController>(context)
-                        .getCurrentScaffold());
-              });
+            value: listManager.fetchDataFuture,
+            initialData: null,
+            catchError: (BuildContext context, Object? error) {
+              return FetchDataDummy(error: error);
+            },
+            builder: (_, __) {
+              return pageSelectorController.getCurrentScaffold();
+            },
+          );
         });
   }
 }
