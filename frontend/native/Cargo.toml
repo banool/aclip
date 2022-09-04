@@ -10,15 +10,15 @@ authors = ["Daniel Porteous <danielporteous1@gmail.com"]
 crate-type = ["lib", "staticlib", "cdylib"]
 
 [dependencies]
-anyhow = { version = "1.0.57", features = ["backtrace"] }
-encoding_rs = "0.8.29"
+anyhow = { version = "1.0.63", features = ["backtrace"] }
+encoding_rs = "0.8.31"
 html5ever = "0.24.1"
-monolith = "2"
-flutter_rust_bridge = "1"
+monolith = "2.6.2"
+flutter_rust_bridge = "1.42.0"
 url = "2.2.2"
 
 [dependencies.reqwest]
-version = "0.11.4"
+version = "0.11.11"
 default-features = false
 features = ["default-tls", "blocking", "gzip"]
 
