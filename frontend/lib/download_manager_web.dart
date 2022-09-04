@@ -1,6 +1,5 @@
 import 'dart:collection';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import 'download_manager.dart';

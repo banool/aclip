@@ -8,7 +8,7 @@ const Color mainColor = Colors.indigo;
 // Constants for the move module.
 HexString moduleAddress = HexString.fromString(
     "c40f1c9b9fdc204cf77f68c9bb7029b0abbe8ad9e5561f7794964076a4fbdcfd");
-const String moduleName = "RootV4";
+const String moduleName = "Root";
 
 // Shared preferences keys.
 const String keyAptosNodeUrl = "keyAptosNodeUrl";
@@ -24,7 +24,7 @@ const String keyCachedUrls = "keyCachedUrls";
 // Shared preferences defaults.
 const String defaultAptosNodeUrl = "https://fullnode.devnet.aptoslabs.com";
 const String? defaultPrivateKey = null;
-const bool defaultSecretByDefault = true;
+const bool defaultSecretByDefault = false;
 const bool defaultLaunchInExternalBrowser = true;
 const bool defaultForceHttpsOnly = false;
 const bool defaultShowTransactionSuccessPage = false;

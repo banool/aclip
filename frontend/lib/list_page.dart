@@ -75,6 +75,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
       return;
     }
     print("Initiating add item flow on startup as browser extension");
+    if (!mounted) return;
     await initiateAddItemFlow(context, url: url);
   }
 
