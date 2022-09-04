@@ -8,12 +8,12 @@ aptos config init
 
 If you already have a config but you need to recreate the account, e.g. for a new devnet release, do this:
 ```
-aptos config init --private-key `yq .profiles.default.private_key < ~/.aptos/config.yml`
+aptos config init --private-key `yq .profiles.default.private_key < ~/.aptos/config.yaml` --assume-yes
 ```
 
 This also works:
 ```
-aptos account create --private-key `yq .profiles.default.private_key < ~/.aptos/config.yml` --account `yq .profiles.default.account < ~/.aptos/config.yml`
+aptos account create --private-key `yq .profiles.default.private_key < ~/.aptos/config.yaml` --account `yq .profiles.default.account < ~/.aptos/config.yaml`
 ```
 
 ## Setting up the module
