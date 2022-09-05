@@ -2,11 +2,9 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
-import 'package:built_collection/built_collection.dart';
 import 'package:built_value/json_object.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:one_of/one_of.dart';
 import 'package:pinenacl/tweetnacl.dart';
 import 'package:pinenacl/x25519.dart';
 
@@ -109,26 +107,16 @@ class ListManager extends ChangeNotifier {
   Future<FullTransactionResult> initializeList() async {
     String func = "${moduleAddress.withPrefix()}::$moduleName::initialize_list";
 
-    // Build a script function payload that transfers coin.
-    ScriptFunctionPayloadBuilder scriptFunctionPayloadBuilder =
-        ScriptFunctionPayloadBuilder()
-          ..type = "script_function_payload"
-          ..function_ = func
-          ..typeArguments = ListBuilder([])
-          ..arguments = ListBuilder([]);
-
     return aptosClientHelper.buildSignSubmitWait(
-        OneOf1<ScriptFunctionPayload>(
-            value: scriptFunctionPayloadBuilder.build()),
-        aptosAccount);
+        AptosClientHelper.buildPayload(func, [], []), aptosAccount);
   }
 
+  /*
   Future<FullTransactionResult> obliterateList() async {
     String func = "${moduleAddress.withPrefix()}::$moduleName::obliterate";
 
-    // Build a script function payload that transfers coin.
-    ScriptFunctionPayloadBuilder scriptFunctionPayloadBuilder =
-        ScriptFunctionPayloadBuilder()
+    EntryFunctionPayloadBuilder entryFunctionPayloadBuilder =
+        EntryFunctionPayloadBuilder()
           ..type = "script_function_payload"
           ..function_ = func
           ..typeArguments = ListBuilder([])
@@ -136,9 +124,10 @@ class ListManager extends ChangeNotifier {
 
     return aptosClientHelper.buildSignSubmitWait(
         OneOf1<ScriptFunctionPayload>(
-            value: scriptFunctionPayloadBuilder.build()),
+            value: entryFunctionPayloadBuilder.build()),
         aptosAccount);
   }
+  */
 
   List<String>? getLinksKeys({bool archived = false}) {
     if (links == null) return null;
@@ -152,7 +141,7 @@ class ListManager extends ChangeNotifier {
   }
 
   String buildResourceType({String? structName}) {
-    return "0x${moduleAddress.noPrefix()}::$moduleName::${structName ?? moduleName}";
+    return "0x${moduleAddress.noPrefix()}::$moduleName::${structName ?? moduleName.capitalize()}";
   }
 
   Future<FetchDataDummy> pull() async {
@@ -184,11 +173,15 @@ class ListManager extends ChangeNotifier {
 
     var resourceType = buildResourceType();
 
-    AccountResource resource;
+    MoveResource resource;
     resource = await unwrapClientCall(aptosClientHelper.client
         .getAccountsApi()
         .getAccountResource(
-            address: moduleAddress.noPrefix(), resourceType: resourceType));
+            address: aptosAccount.address.noPrefix(),
+            resourceType: resourceType));
+
+    print("RESOURCe");
+    print(resource);
 
     // Process info from the resources.
     var inner = resource.data.asMap["inner"];
@@ -197,24 +190,24 @@ class ListManager extends ChangeNotifier {
     LinkedHashMap<String, LinkData> out = LinkedHashMap();
 
     // Read regular links.
-    for (String url in inner["links"]["keys"]) {
-      out[url] = LinkData(archived: false, secret: false);
+    for (dynamic item in (inner["links"]["data"] ?? {})) {
+      out[item["key"]] = LinkData(archived: false, secret: false);
     }
 
     // Read archived links.
-    for (String url in inner["archived_links"]["keys"]) {
-      out[url] = LinkData(archived: true, secret: false);
+    for (dynamic item in (inner["archived_links"]["data"] ?? {})) {
+      out[item["key"]] = LinkData(archived: true, secret: false);
     }
 
     // Read secret links.
-    for (String url in inner["secret_links"]["keys"]) {
-      out[myDecryptWithSecretBox(secretBox, url)] =
+    for (dynamic item in (inner["archived_links"]["data"] ?? {})) {
+      out[myDecryptWithSecretBox(secretBox, item["key"])] =
           LinkData(archived: false, secret: true);
     }
 
     // Read archived secret links.
-    for (String url in inner["archived_secret_links"]["keys"]) {
-      out[myDecryptWithSecretBox(secretBox, url)] =
+    for (dynamic item in (inner["archived_secret_links"]["data"] ?? {})) {
+      out[myDecryptWithSecretBox(secretBox, item["key"])] =
           LinkData(archived: true, secret: true);
     }
 
@@ -251,17 +244,8 @@ class ListManager extends ChangeNotifier {
       function_ += "add";
     }
 
-    ScriptFunctionPayloadBuilder scriptFunctionPayloadBuilder =
-        ScriptFunctionPayloadBuilder()
-          ..type = "script_function_payload"
-          ..function_ = function_
-          ..typeArguments = ListBuilder([])
-          ..arguments = ListBuilder(arguments);
-
     FullTransactionResult result = await aptosClientHelper.buildSignSubmitWait(
-        OneOf1<ScriptFunctionPayload>(
-            value: scriptFunctionPayloadBuilder.build()),
-        aptosAccount);
+        AptosClientHelper.buildPayload(function_, [], arguments), aptosAccount);
 
     if (result.committed) {
       links![url] = LinkData(archived: false, secret: secret);
@@ -306,17 +290,8 @@ class ListManager extends ChangeNotifier {
       BoolJsonObject(linkData.secret),
     ];
 
-    ScriptFunctionPayloadBuilder scriptFunctionPayloadBuilder =
-        ScriptFunctionPayloadBuilder()
-          ..type = "script_function_payload"
-          ..function_ = function_
-          ..typeArguments = ListBuilder([])
-          ..arguments = ListBuilder(arguments);
-
     FullTransactionResult result = await aptosClientHelper.buildSignSubmitWait(
-        OneOf1<ScriptFunctionPayload>(
-            value: scriptFunctionPayloadBuilder.build()),
-        aptosAccount);
+        AptosClientHelper.buildPayload(function_, [], arguments), aptosAccount);
 
     if (result.committed) {
       switch (action) {

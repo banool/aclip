@@ -1,11 +1,10 @@
 [package]
 name = "aclip"
-version = "0.1.0"
+version = "0.1.1"
 
 [dependencies]
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "devnet" }
 
 [addresses]
-aclip = "c40f1c9b9fdc204cf77f68c9bb7029b0abbe8ad9e5561f7794964076a4fbdcfd"
-maptable = "c40f1c9b9fdc204cf77f68c9bb7029b0abbe8ad9e5561f7794964076a4fbdcfd"
+aclip = "3c769ea16f38fdc218341c63ff8c1c5c7dcbb4d5d850675e92b09997fd36e8f0"
 

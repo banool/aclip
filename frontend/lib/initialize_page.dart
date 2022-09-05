@@ -24,6 +24,8 @@ class InitializePageState extends State<InitializePage> {
 
   Future<FullTransactionResult> initializeList() async {
     FullTransactionResult result = await listManager.initializeList();
+    print("HEYHEYEYEHEHEH");
+    print(result);
     if (result.committed) {
       try {
         await listManager.triggerPull();

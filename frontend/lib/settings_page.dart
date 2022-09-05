@@ -134,6 +134,7 @@ class SettingsPageState extends State<SettingsPage> {
               setState(() {});
             },
           ),
+          /*
           SettingsTile.navigation(
               title: getText(
                 "Wipe list from account",
@@ -151,6 +152,7 @@ class SettingsPageState extends State<SettingsPage> {
                   print("Reset everything");
                 }
               }),
+          */
         ],
         margin: margin,
       ),

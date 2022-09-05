@@ -1,6 +1,6 @@
 // If ever updating this version, also update:
 // - frontend/lib/constants.dart
-module aclip::Root {
+module aclip::root {
     use std::string;
     use std::error;
     use std::signer;

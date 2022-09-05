@@ -7,8 +7,8 @@ const Color mainColor = Colors.indigo;
 
 // Constants for the move module.
 HexString moduleAddress = HexString.fromString(
-    "c40f1c9b9fdc204cf77f68c9bb7029b0abbe8ad9e5561f7794964076a4fbdcfd");
-const String moduleName = "Root";
+    "3c769ea16f38fdc218341c63ff8c1c5c7dcbb4d5d850675e92b09997fd36e8f0");
+const String moduleName = "root";
 
 // Shared preferences keys.
 const String keyAptosNodeUrl = "keyAptosNodeUrl";
@@ -22,7 +22,7 @@ const String keySaveOnOpen = "keySaveOnOpen";
 const String keyCachedUrls = "keyCachedUrls";
 
 // Shared preferences defaults.
-const String defaultAptosNodeUrl = "https://fullnode.devnet.aptoslabs.com";
+const String defaultAptosNodeUrl = "https://fullnode.devnet.aptoslabs.com/v1";
 const String? defaultPrivateKey = null;
 const bool defaultSecretByDefault = false;
 const bool defaultLaunchInExternalBrowser = true;
