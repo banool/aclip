@@ -1,4 +1,5 @@
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -117,7 +118,16 @@ class SettingsPageState extends State<SettingsPage> {
               "Encrypt items by default",
             ),
             onToggle: (bool enabled) async {
-              await sharedPreferences.setBool(keySecretByDefault, enabled);
+              bool confirmed = true;
+              if (enabled) {
+                if (!(sharedPreferences.getBool(keyAcknowledgedSecretCaveats) ??
+                    defaultAcknowledgedSecretCaveats)) {
+                  confirmed = await confirmAcknowledgedSecretsCaveats(context);
+                }
+              }
+              if (confirmed) {
+                await sharedPreferences.setBool(keySecretByDefault, enabled);
+              }
               setState(() {});
             },
           ),
@@ -492,5 +502,43 @@ Future<bool> confirmAlert(BuildContext context, Widget content,
       return alert;
     },
   );
+  return confirmed;
+}
+
+Future<bool> confirmAcknowledgedSecretsCaveats(BuildContext context) async {
+  bool confirmed = await confirmAlert(
+      context,
+      RichText(
+          text: TextSpan(
+        children: [
+          TextSpan(
+            text: "Warning: Storing encrypted private information in a "
+                "publicly accessible location (I.e. the Aptos blockchain) "
+                "is only safe so long as you never lose your private key / "
+                "associated mnemonic and the encryption scheme used is "
+                "never broken. Make sure you understand these risks and "
+                "weigh them against how sensitive the data you're storing "
+                "on chain is before using this feature. ",
+            style: TextStyle(
+                color: Colors.black, fontSize: 16, fontWeight: FontWeight.w300),
+          ),
+          TextSpan(
+              text: "Read more here.",
+              recognizer: TapGestureRecognizer()
+                ..onTap = () async {
+                  await launchUrl(Uri.parse(
+                      "https://crypto.stackexchange.com/questions/46848/can-private-data-be-encrypted-and-stored-safely-in-public"));
+                },
+              style: TextStyle(
+                  color: Colors.blue,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w300)),
+        ],
+      )),
+      title: "Warning",
+      confirmText: "I understand");
+  if (confirmed) {
+    await sharedPreferences.setBool(keyAcknowledgedSecretCaveats, true);
+  }
   return confirmed;
 }

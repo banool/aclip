@@ -1,4 +1,5 @@
 import 'package:aclip/js_controller.dart';
+import 'package:aclip/settings_page.dart';
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -42,7 +43,7 @@ class AddItemScreenState extends State<AddItemScreen> {
     });
   }
 
-  void triggerAddItem() {
+  void triggerAddItem() async {
     setState(() {
       addItemFuture = listManager.addItem(
           textController.text.replaceAll("\n", " "), makeEncrypted, []);
@@ -126,12 +127,23 @@ class AddItemScreenState extends State<AddItemScreen> {
                           title: Text("Encrypt this item?"),
                           value: makeEncrypted,
                           controlAffinity: ListTileControlAffinity.leading,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              if (value != null) {
-                                makeEncrypted = value;
+                          onChanged: (bool? value) async {
+                            if (value != null) {
+                              if (value) {
+                                // First make sure they have acknowledged the secrets caveats.
+                                if (!(sharedPreferences.getBool(
+                                        keyAcknowledgedSecretCaveats) ??
+                                    defaultAcknowledgedSecretCaveats)) {
+                                  if (!(await confirmAcknowledgedSecretsCaveats(
+                                      context))) {
+                                    return;
+                                  }
+                                }
                               }
-                            });
+                              setState(() {
+                                makeEncrypted = value;
+                              });
+                            }
                           })),
                 ],
               )

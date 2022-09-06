@@ -20,6 +20,7 @@ const String keyShowTransactionSuccessPage = "keyShowTransactionSuccessPage";
 const String keyOnlyOfflineLinks = "keyOnlyOfflineLinks";
 const String keySaveOnOpen = "keySaveOnOpen";
 const String keyCachedUrls = "keyCachedUrls";
+const String keyAcknowledgedSecretCaveats = "keyAcknowledgedSecretCaveats";
 
 // Shared preferences defaults.
 const String defaultAptosNodeUrl = "https://fullnode.devnet.aptoslabs.com/v1";
@@ -30,3 +31,4 @@ const bool defaultForceHttpsOnly = false;
 const bool defaultShowTransactionSuccessPage = false;
 const bool defaultOnlyOfflineLinks = false;
 const bool defaultSaveOnOpen = true;
+const bool defaultAcknowledgedSecretCaveats = false;

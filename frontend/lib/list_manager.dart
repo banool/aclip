@@ -180,9 +180,6 @@ class ListManager extends ChangeNotifier {
             address: aptosAccount.address.noPrefix(),
             resourceType: resourceType));
 
-    print("RESOURCe");
-    print(resource);
-
     // Process info from the resources.
     var inner = resource.data.asMap["inner"];
 
