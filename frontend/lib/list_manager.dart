@@ -12,6 +12,7 @@ import 'common.dart';
 import 'constants.dart';
 import 'globals.dart';
 
+// TODO: I suspect that doing this is horifically insecure. Investigate.
 Uint8List nonce = Uint8List.fromList(List.filled(TweetNaCl.nonceLength, 1));
 
 enum RemoveItemAction {
@@ -197,7 +198,7 @@ class ListManager extends ChangeNotifier {
     }
 
     // Read secret links.
-    for (dynamic item in (inner["archived_links"]["data"] ?? {})) {
+    for (dynamic item in (inner["secret_links"]["data"] ?? {})) {
       out[myDecryptWithSecretBox(secretBox, item["key"])] =
           LinkData(archived: false, secret: true);
     }

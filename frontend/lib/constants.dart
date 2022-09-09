@@ -23,7 +23,7 @@ const String keyCachedUrls = "keyCachedUrls";
 const String keyAcknowledgedSecretCaveats = "keyAcknowledgedSecretCaveats";
 
 // Shared preferences defaults.
-const String defaultAptosNodeUrl = "https://fullnode.devnet.aptoslabs.com/v1";
+const String defaultAptosNodeUrl = "https://testnet.aptoslabs.com/v1";
 const String? defaultPrivateKey = null;
 const bool defaultSecretByDefault = false;
 const bool defaultLaunchInExternalBrowser = true;

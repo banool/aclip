@@ -6,14 +6,9 @@ cd ~
 aptos config init
 ```
 
-If you already have a config but you need to recreate the account, e.g. for a new devnet release, do this:
+If you already have a config but you need to recreate the account, e.g. for a new release, do this (this is for long-lived testnet):
 ```
-aptos config init --private-key `yq .profiles.default.private_key < ~/.aptos/config.yaml` --assume-yes
-```
-
-This also works:
-```
-aptos account create --private-key `yq .profiles.default.private_key < ~/.aptos/config.yaml` --account `yq .profiles.default.account < ~/.aptos/config.yaml`
+aptos config init --private-key `yq .profiles.default.private_key < .aptos/config.yaml` --assume-yes --rest-url https://testnet.aptoslabs.com/v1 --faucet-url https://faucet.testnet.aptoslabs.com
 ```
 
 ## Setting up the module
@@ -29,8 +24,6 @@ aptos move publish --package-dir github/aclip/move
 
 ## Uprading the version of aptos-framework
 You'll see that in Move.toml, the version of aptos-framework is pinned to a particular revision of the repo. This is important, because over time we land changes to the framework that aren't immediately reflected in the devnet. While those changes (ideally) would work on a test net running from that same revision, a newer version of the framework might not work on the current test net. Each time a new devnet is released, we can (and might have to) pin to a later revision.
-
-As it is now, the aptos010 CLI is the only one that passes tests, whereas aptos012 is the only one that can publish.
 
 ## Troubleshooting
 - When testing / publishing, you might find some unexpected weird compilation errors. It's possible that we haven't invalidated the move package cache properly. In that case, run `rm ~/.move`

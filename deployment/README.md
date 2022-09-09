@@ -34,7 +34,12 @@ gcp:region             us-west3
 You can do that with commands like these:
 ```
 pulumi config set gcp:region us-west1
-pulumi config set account_private_key --secret 0x342423432432babaffabababff
 ```
 
 You need to do this locally and commit the stack file before the CI will work. In short, when CI runs, it runs `pulumi up` in each of these projects. This first logs in to the Pulumi service, where the secrets are held.
+
+## Deploying manually
+Running Pulumi locally should also work just fine:
+```
+pulumi up --skip-preview -y --refresh
+```

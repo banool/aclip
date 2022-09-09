@@ -24,15 +24,14 @@ class InitializePageState extends State<InitializePage> {
 
   Future<FullTransactionResult> initializeList() async {
     FullTransactionResult result = await listManager.initializeList();
-    print("HEYHEYEYEHEHEH");
-    print(result);
     if (result.committed) {
       try {
         await listManager.triggerPull();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Successfully initialized list!"),
         ));
-        Provider.of<PageSelectorController>(context).refreshParent();
+        Provider.of<PageSelectorController>(context, listen: false)
+            .refreshParent();
       } catch (e) {
         print("Pulling after initialize failed: $e");
         showErrorInDialog(context, e);
