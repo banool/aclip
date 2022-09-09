@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   # Check which files / paths have changed.
   # We use this to inform whether we should run later jobs.
@@ -35,10 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: wget https://github.com/aptos-labs/aptos-core/releases/download/cli-latest/aptos-v0.1.0-linux-x86_64.zip -O cli.zip
+    - run: wget https://github.com/aptos-labs/aptos-core/releases/download/aptos-cli-v0.3.3/aptos-cli-0.3.3-Ubuntu-x86_64.zip -O cli.zip
     - run: unzip cli.zip
     - run: ./aptos move test
-  
+
 
   # Publish the move module.
   publish_move_module:
@@ -50,79 +53,55 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: wget https://github.com/aptos-labs/aptos-core/releases/download/aptos-cli-v0.1.1/aptos-cli-0.1.1-Ubuntu-x86_64.zip -O cli.zip
+    - run: wget https://github.com/aptos-labs/aptos-core/releases/download/aptos-cli-v0.3.3/aptos-cli-0.3.3-Ubuntu-x86_64.zip -O cli.zip
     - run: unzip cli.zip
     - run: yes "" | ./aptos init --assume-yes --private-key ${{ secrets.APTOS_ACCOUNT_PRIVATE_KEY }}
     - run: ./aptos move publish
-    - run: wget https://github.com/mikefarah/yq/releases/download/v4.25.1/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
-    - run: ./aptos move run --function-id "$(yq .profiles.default.account < .aptos/config.yaml)::$(cat move_module/sources/AptosInfiniteJukebox.move | grep -o -E 'JukeboxV\d+' | head -n 1)::initialize_jukebox" --max-gas 10000
 
-  # Update the web infrastructure if necessary. We always run this action so
-  # we have the outputs for later steps. 
-  update_web_infrastructure:
-    defaults:
-      run:
-        working-directory: ./deployment/web
-    outputs:
-      bucketUrl: ${{ steps.pulumi.outputs.bucketUrl }}
+
+  # Build web and upload the artifact.
+  build_web:
     runs-on: ubuntu-latest
+    needs: [changes]
+    if: needs.changes.outputs.frontend == 'true'
+    concurrency: ci-${{ github.ref }}
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/setup-node@v2
-      with:
-        node-version: 18.x
-    # TODO: Use WIF when gsutil supports it:
-    # https://github.com/GoogleCloudPlatform/gsutil/issues/1407
-    - id: 'auth'
-      uses: 'google-github-actions/auth@v0'
-      with:
-        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-    - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v0'
-    - run: npm install
-    - uses: pulumi/actions@v3
-      id: pulumi
-      with:
-        command: up
-        stack-name: prod
-        work-dir: ./deployment/web
-      env:
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-        GOOGLE_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-        GOOGLE_REGION: ${{ secrets.GCP_REGION }}
 
-
-  # Build / test web and push it.
-  push_web:
-    defaults:
-      run:
-        working-directory: ./frontend
-    needs: [update_web_infrastructure]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - id: 'auth'
-      uses: 'google-github-actions/auth@v0'
-      with:
-        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-    - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v0'
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '3.0.1'
+        flutter-version: '3.3.0'
         channel: stable
-    
+
     # Switch to the web build.
-    - run: ./switch_web.sh web
+    - run: cd frontend && ./switch_web.sh web
 
-    # Test and build 
-    - run: flutter pub get
-    - run: flutter test
-    - run: flutter build web
+    # Test and build
+    - run: cd frontend && flutter pub get
+    - run: cd frontend && flutter test
+    - run: cd frontend && flutter build web
 
-    # Copy the files into the GCP bucket.
-    - run: echo "${{ needs.update_web_infrastructure.outputs.bucketUrl }}"
-    - run: gsutil rsync -R build/web/ "${{ needs.update_web_infrastructure.outputs.bucketUrl }}"
+    # Upload the artifact.
+    - uses: actions/upload-pages-artifact@v1
+      with:
+        path: frontend/build/web
+
+
+  # Deploy web using the artifact from the previous job.
+  deploy_web:
+    runs-on: ubuntu-latest
+    needs: [build_web]
+    concurrency: ci-${{ github.ref }}
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - uses: actions/configure-pages@v1
+    - id: deployment
+      uses: actions/deploy-pages@v1
 
 
   # Build, test, sign, publish Android build.
@@ -153,7 +132,7 @@ jobs:
       with:
           toolchain: stable
           override: true
-    
+
     - run: rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
 
     - uses: nttld/setup-ndk@v1
@@ -170,7 +149,7 @@ jobs:
 
     - uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.0.1'
+        flutter-version: '3.3.0'
         channel: stable
 
     - run: flutter pub get

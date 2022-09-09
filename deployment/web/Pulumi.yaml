@@ -1,3 +1,0 @@
-name: aclip 
-runtime: nodejs
-description: Pulumi program for setting up resources for running the aclip web frontend

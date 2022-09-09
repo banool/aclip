@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'constants.dart';
@@ -33,6 +34,9 @@ Future<void> myShowDialog(BuildContext context, Widget body,
 }
 
 Future<bool> canConnectToInternet() async {
+  if (kIsWeb) {
+    return true;
+  }
   if (runningAsBrowserExtension) {
     return true;
   }

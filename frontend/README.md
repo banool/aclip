@@ -1,4 +1,4 @@
-# aclip frontend 
+# aclip frontend
 
 ## Flutter -> Rust bindings
 See `native/README.md`.
@@ -16,12 +16,13 @@ This will toggle between web and extension build modes. You can also invoke it t
 ./switch_web.sh extension
 ```
 
-If building for extension, make sure to build it like this:
+When building the extension as part of the dev cycle, build it like this:
 ```
-flutter build web --dart-define=IS_BROWSER_EXTENSION=true --web-renderer html --csp
+flutter build web --dart-define=IS_BROWSER_EXTENSION=true --web-renderer html --csp --profile --dart-define=Dart2jsOptimization=O0
 ```
+The flags `--profile --dart-define=Dart2jsOptimization=O0` ensure you can see proper debug messages.
 
-When developing include `--profile --dart-define=Dart2jsOptimization=O0` to see proper debug messages.
+Once built, go to `chrome://extensions` and "load unpacked" the `build/web` directory.
 
 To deploy the extension, for now do that manually:
 ```
@@ -35,6 +36,25 @@ zip -r ~/Downloads/extension.zip .
 Then upload that to https://chrome.google.com/webstore/devconsole.
 
 Firefox is not supported right now as this extension stands today because it doesn't support manifest v3: https://blog.mozilla.org/addons/2022/05/18/manifest-v3-in-firefox-recap-next-steps/.
+
+## Deploying to Web
+The website is configured to deploy to GitHub pages. For perpetuity, here is how I did this:
+1. I added the `build_web` and `deploy_web` GitHub Actions jobs in `full_ci.yml`.
+2. I went to the [GitHub Pages UI for the aclip repo](https://github.com/banool/aclip/settings/pages) (*not* the UI for banool.github.io) and set the custom domain to `aclip.app`.
+3. I followed the steps [here](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain) (the apex domain option) that explain how to point your DNS name at GitHub's GitHub Pages servers. I used the A name option.
+4. I made a CNAME record for the www subdomain, which GH Pages treats specially.
+
+In the end I had these DNS records set up:
+- A: @ 185.199.108.153
+- A: @ 185.199.109.153
+- A: @ 185.199.110.153
+- A: @ 185.199.111.153
+- CNAME: www banool.github.io (it automatically put a dot at the end)
+
+This approach doesn't result in the build files appearing in the repos for banool.github.io or aclip, they just get put somewhere that GitHub hosts. I did not need to do anything to the GH Pages configuration of banool.github.io. If you did the DNS stuff properly, it should tell you so at the GitHub Pages UI.
+
+## Deploying Chrome extension
+See above.
 
 ## Deploying to Android
 This is done automatically via Github Actions.
