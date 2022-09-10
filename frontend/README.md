@@ -63,9 +63,8 @@ This is done automatically via Github Actions.
 Currently this must be done manually:
 ```
 flutter pub get
-cd ios
 flutter build ios --release --no-codesign
-./publish.sh
+ios/publish.sh
 ```
 
 If you run into problems with this, run some combination of these commands:
@@ -75,7 +74,7 @@ rm Gemfile.lock
 sudo gem cleanup
 sudo gem update
 pod install
-. publish.env && fastlane match nuke distribution -y appstore
+. publish.env && yes | fastlane match nuke distribution && yes | fastlane match nuke development
 ```
 Make sure you're using an up to date ruby / gem and it is configured first in your PATH. Make sure `pod` is coming from that gem install too. [See here](https://stackoverflow.com/questions/20755044/how-do-i-install-cocoapods). Make sure to use the one with `-n`.
 
