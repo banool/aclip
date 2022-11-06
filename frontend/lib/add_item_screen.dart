@@ -25,7 +25,7 @@ class AddItemScreenState extends State<AddItemScreen> {
   bool makeEncrypted =
       sharedPreferences.getBool(keySecretByDefault) ?? defaultSecretByDefault;
 
-  Future? addItemFuture;
+  Future<FullTransactionResult>? addItemFuture;
 
   @override
   void initState() {
@@ -171,13 +171,17 @@ Widget buildAddItemView(Future addItemFuture) {
         }
         if (snapshot.hasError) {
           return TransactionResultWidget(FullTransactionResult(
-              false, null, getErrorString(snapshot.error!), null));
+              false, false, null, getErrorString(snapshot.error!), null));
         }
-        if (!(sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
-            defaultShowTransactionSuccessPage)) {
+        FullTransactionResult result = snapshot.data!;
+        // If the result was success and the says they don't want to see the
+        // transaction page on success, just pop.
+        if (result.success &&
+            !(sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
+                defaultShowTransactionSuccessPage)) {
           Navigator.pop(context);
           return SizedBox(width: 1, height: 1);
         }
-        return TransactionResultWidget(snapshot.data!);
+        return TransactionResultWidget(result);
       });
 }

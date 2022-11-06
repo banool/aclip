@@ -1,16 +1,14 @@
-name: aclip 
+name: aclip
 description: Bookmarks, powered by Aptos
 
-publish_to: 'none'
-
-version: 1.1.82+129
+version: 1.1.83+130
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
   flutter: ">=3.0.1"
 
 dependencies:
-  aptos_sdk_dart: ^0.5.5
+  aptos_sdk_dart: ^1.0.1
   built_collection:
   built_value:
   crypto:
@@ -31,14 +29,19 @@ dependencies:
   url_launcher:
   webview_flutter:
   universal_html:
+  ffi: ^2.0.1
+  freezed_annotation: ^2.2.0
 
 dev_dependencies:
+  build_runner: ^2.3.2
   device_info_plus:
+  ffigen: ^7.2.0
   flutter_driver:
     sdk: flutter
   flutter_lints: ^2.0.1
   flutter_test:
     sdk: flutter
+  freezed: ^2.2.1
   icons_launcher: ^2.0.4
   integration_test:
     sdk: flutter
