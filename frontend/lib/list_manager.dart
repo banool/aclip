@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:built_value/json_object.dart';
@@ -7,6 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:pinenacl/tweetnacl.dart';
 import 'package:pinenacl/x25519.dart';
+import 'package:url_launcher/link.dart';
 
 import 'common.dart';
 import 'constants.dart';
@@ -15,23 +17,26 @@ import 'globals.dart';
 const int maxGasAmount = 10000000;
 const int gasUnitPrice = 100;
 
-// TODO: I suspect that doing this is horifically insecure. Investigate.
-Uint8List nonce = Uint8List.fromList(List.filled(TweetNaCl.nonceLength, 1));
-
 enum RemoveItemAction {
   remove,
   archive,
   unarchive,
 }
 
-String myEncryptWithSecretBox(SecretBox secretBox, Object object) {
+String myEncryptWithSecretBox(
+    SecretBox secretBox, Object object, int nonceRaw) {
   var jsonEncoded = json.encode(object);
+  Uint8List nonce =
+      Uint8List.fromList(List.filled(TweetNaCl.nonceLength, nonceRaw));
   var encrypted = secretBox.encrypt(Uint8List.fromList(jsonEncoded.codeUnits),
       nonce: nonce);
   return HexString.fromBytes(encrypted.cipherText.toUint8List()).withPrefix();
 }
 
-dynamic myDecryptWithSecretBox(SecretBox secretBox, String encrypted) {
+dynamic myDecryptWithSecretBox(
+    SecretBox secretBox, String encrypted, int nonceRaw) {
+  Uint8List nonce =
+      Uint8List.fromList(List.filled(TweetNaCl.nonceLength, nonceRaw));
   var decrypted = secretBox.decrypt(
       ByteList.fromList(HexString.fromString(encrypted).toBytes()),
       nonce: nonce);
@@ -39,17 +44,21 @@ dynamic myDecryptWithSecretBox(SecretBox secretBox, String encrypted) {
 }
 
 class LinkData {
-  // You'll see that tags is optional. We only fetch the tags when we have to,
-  // since it requires a read per link.
-  List<String>? tags;
-
   // Whether the link came from an archived_ list.
   bool archived;
 
   // Whether the link came from a secret_ list.
   bool secret;
 
-  LinkData({required this.archived, required this.secret, this.tags});
+  // You'll see that tags is optional. We only fetch the tags when we have to,
+  // since it requires a read per link.
+  List<String>? tags;
+
+  // Nonce, if this LinkData came from a secret link.
+  int? nonce;
+
+  LinkData(
+      {required this.archived, required this.secret, this.tags, this.nonce});
 
   @override
   String toString() {
@@ -61,6 +70,8 @@ class LinkData {
         archived = json["archived"],
         secret = json["secret"];
 
+  // We don't include the nonce in the JSON, since it's stored in a separate
+  // non-encrypted field on chain, to facilitate decryption.
   Map<String, dynamic> toJson() {
     return {
       "tags": tags ?? [],
@@ -71,13 +82,22 @@ class LinkData {
 
   // Convert struct to json, then to hex, then encrypt it. We sign the message
   // using the public key, so only we can decrypt it with our private key.
-  String encrypt(SecretBox secretBox) {
-    return myEncryptWithSecretBox(secretBox, this);
+  String encrypt(SecretBox secretBox, int nonceRaw) {
+    return myEncryptWithSecretBox(secretBox, this, nonceRaw);
   }
 
-  static LinkData decrypt(SecretBox secretBox, String encrypted) {
-    return LinkData.fromJson(myDecryptWithSecretBox(secretBox, encrypted));
+  static LinkData decrypt(SecretBox secretBox, String encrypted, int nonceRaw) {
+    return LinkData.fromJson(
+        myDecryptWithSecretBox(secretBox, encrypted, nonceRaw));
   }
+}
+
+// Since tuples aren't allowed.
+class KeyAndLinkData {
+  String key;
+  LinkData linkData;
+
+  KeyAndLinkData(this.key, this.linkData);
 }
 
 // This is all to avoid https://stackoverflow.com/questions/58451500/avoid-single-frame-waiting-state-when-passing-already-completed-future-to-a-futu
@@ -145,8 +165,8 @@ class ListManager extends ChangeNotifier {
     return keys;
   }
 
-  String buildResourceType({String? structName}) {
-    return "0x${moduleAddress.noPrefix()}::$moduleName::${structName ?? moduleName.capitalize()}";
+  String buildResourceType({String? structNameOverride}) {
+    return "0x${moduleAddress.noPrefix()}::$moduleName::${structNameOverride ?? structName}";
   }
 
   Future<FetchDataDummy> pull() async {
@@ -201,16 +221,25 @@ class ListManager extends ChangeNotifier {
       out[item["key"]] = LinkData(archived: true, secret: false);
     }
 
+    KeyAndLinkData readSecretItem(dynamic item, bool archived) {
+      int nonce = int.parse(item["value"]["nonce"]);
+      String key = myDecryptWithSecretBox(secretBox, item["key"], nonce);
+      // We don't bother reading the actual LinkData (tags) for now.
+      LinkData linkData =
+          LinkData(archived: archived, secret: true, nonce: nonce);
+      return KeyAndLinkData(key, linkData);
+    }
+
     // Read secret links.
     for (dynamic item in (inner["secret_links"]["data"] ?? {})) {
-      out[myDecryptWithSecretBox(secretBox, item["key"])] =
-          LinkData(archived: false, secret: true);
+      var keyAndLinkData = readSecretItem(item, false);
+      out[keyAndLinkData.key] = keyAndLinkData.linkData;
     }
 
     // Read archived secret links.
     for (dynamic item in (inner["archived_secret_links"]["data"] ?? {})) {
-      out[myDecryptWithSecretBox(secretBox, item["key"])] =
-          LinkData(archived: true, secret: true);
+      var keyAndLinkData = readSecretItem(item, true);
+      out[keyAndLinkData.key] = keyAndLinkData.linkData;
     }
 
     return out;
@@ -228,10 +257,20 @@ class ListManager extends ChangeNotifier {
     List<JsonObject> arguments;
     String function_ = "${moduleAddress.withPrefix()}::$moduleName::";
     if (secret) {
+      // Build the LinkData.
       var linkData = LinkData(archived: false, secret: secret);
+
+      // Generate a nonce.
+      var rng = Random();
+      int nonceRaw = rng.nextInt(4294967294) + 1;
+
+      // Encrypt the key.
+      var urlEncrypted = myEncryptWithSecretBox(secretBox, url, nonceRaw);
+      var linkDataEncrypted = linkData.encrypt(secretBox, nonceRaw);
       arguments = [
-        StringJsonObject(myEncryptWithSecretBox(secretBox, url)),
-        StringJsonObject(linkData.encrypt(secretBox)),
+        StringJsonObject(urlEncrypted),
+        StringJsonObject(linkDataEncrypted),
+        StringJsonObject("$nonceRaw"), // The API expects numbers as strings.
         BoolJsonObject(false),
       ];
       function_ += "add_secret";
@@ -282,7 +321,7 @@ class ListManager extends ChangeNotifier {
 
     String urlEncoded;
     if (linkData.secret) {
-      urlEncoded = myEncryptWithSecretBox(secretBox, url);
+      urlEncoded = myEncryptWithSecretBox(secretBox, url, linkData.nonce!);
     } else {
       urlEncoded = HexString.fromRegularString(url).noPrefix();
     }

@@ -15,6 +15,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pinenacl/x25519.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const int nonce = 1;
+
 void main() {
   testWidgets('test signing stuff', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
@@ -38,15 +40,20 @@ void main() {
 
     SecretBox secretBox = SecretBox(getPrivateKey()!.toBytes());
 
-    var encrypted = myEncryptWithSecretBox(secretBox, url);
-    var decrypted = myDecryptWithSecretBox(secretBox, encrypted);
+    var encrypted = myEncryptWithSecretBox(
+      secretBox,
+      url,
+      nonce,
+    );
+    var decrypted = myDecryptWithSecretBox(secretBox, encrypted, nonce);
 
     expect(url, decrypted);
 
     LinkData linkData = LinkData(archived: true, secret: true);
 
-    var encryptedLinkData = linkData.encrypt(secretBox);
-    var decryptedLinkData = LinkData.decrypt(secretBox, encryptedLinkData);
+    var encryptedLinkData = linkData.encrypt(secretBox, nonce);
+    var decryptedLinkData =
+        LinkData.decrypt(secretBox, encryptedLinkData, nonce);
 
     expect(decryptedLinkData.archived, true);
     expect(decryptedLinkData.secret, true);

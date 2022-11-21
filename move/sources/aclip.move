@@ -1,6 +1,7 @@
 // If ever updating this version, also update:
+// - move/Move.toml
 // - frontend/lib/constants.dart
-module aclip::root {
+module addr::aclip {
     use std::string;
     use std::error;
     use std::signer;
@@ -28,13 +29,21 @@ module aclip::root {
 
         /// As above, but the key is encrypted using the private key and the
         /// value is an encrypted version of LinkData.
-        secret_links: simple_map::SimpleMap<vector<u8>, vector<u8>>,
+        secret_links: simple_map::SimpleMap<vector<u8>, EncryptedLinkData>,
 
         /// Any link the user has chosen to archive.
         archived_links: simple_map::SimpleMap<string::String, LinkData>,
 
         /// Any secret link the user has chosen to archive.
-        archived_secret_links: simple_map::SimpleMap<vector<u8>, vector<u8>>,
+        archived_secret_links: simple_map::SimpleMap<vector<u8>, EncryptedLinkData>,
+    }
+
+    struct EncryptedLinkData has drop, store {
+        // LinkData (as JSON) encrypted.
+        link_data: vector<u8>,
+
+        // The nonce used for the encryption of `link_Data` and the accompanying key (URL).
+        nonce: u64,
     }
 
     struct LinkData has drop, store {
@@ -106,29 +115,34 @@ module aclip::root {
         };
     }
 
-    /// This is just a helper for testing mostly.
+    /// This is just a helper for external testing mostly.
     public entry fun add_simple(account: &signer, url_raw: vector<u8>) acquires Root {
         add(account, url_raw, vector::empty(), false);
     }
 
     /// Add a link to secret_links. As above, we don't bother with collisions.
-    public entry fun add_secret(account: &signer, url: vector<u8>, link_data: vector<u8>, add_to_archive: bool) acquires Root {
+    public entry fun add_secret(account: &signer, url: vector<u8>, link_data: vector<u8>, nonce: u64, add_to_archive: bool) acquires Root {
         let addr = signer::address_of(account);
         assert!(exists<Root>(addr), error::invalid_state(E_NOT_INITIALIZED));
 
         let addr = signer::address_of(account);
         let inner = &mut borrow_global_mut<Root>(addr).inner;
 
+        let encrypted_link_data = EncryptedLinkData {
+            link_data: link_data,
+            nonce: nonce,
+        };
+
         if (add_to_archive) {
-            simple_map::add(&mut inner.archived_secret_links, url, link_data);
+            simple_map::add(&mut inner.archived_secret_links, url, encrypted_link_data);
         } else {
-            simple_map::add(&mut inner.secret_links, url, link_data);
+            simple_map::add(&mut inner.secret_links, url, encrypted_link_data);
         };
     }
 
     /// Remove an item with the given key. We trust the user isn't trying to remove
     /// a key that isn't in their list. We opt to be cheeky here and use this function
-    /// for all 4 different lists.
+    /// for all 4 different lists. In the secret case, `url_raw` is the encrypted URL.
     public entry fun remove(account: &signer, url_raw: vector<u8>, from_archive: bool, from_secrets: bool) acquires Root {
         let addr = signer::address_of(account);
         assert!(exists<Root>(addr), error::invalid_state(E_NOT_INITIALIZED));
@@ -214,9 +228,9 @@ module aclip::root {
 
         // Confirm that the other link is still there in the archived list.
         let inner = &borrow_global<Root>(addr).inner;
-        assert!(simple_map::contains(&inner.archived_links, string::utf8(url2)), error::internal(E_TEST_FAILURE));
+        assert!(simple_map::contains_key(&inner.archived_links, &string::utf8(url2)), error::internal(E_TEST_FAILURE));
 
         // Confirm that even if there are items, we can destroy everything.
-        obliterate(&account);
+        // obliterate(&account);
     }
 }

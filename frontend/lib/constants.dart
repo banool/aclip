@@ -7,8 +7,9 @@ const Color mainColor = Colors.indigo;
 
 // Constants for the move module.
 HexString moduleAddress = HexString.fromString(
-    "3c769ea16f38fdc218341c63ff8c1c5c7dcbb4d5d850675e92b09997fd36e8f0");
-const String moduleName = "root";
+    "6286dfd5e2778ec069d5906cd774efdba93ab2bec71550fa69363482fbd814e7");
+const String moduleName = "aclip";
+const String structName = "Root";
 
 // Shared preferences keys.
 const String keyAptosNodeUrl = "keyAptosNodeUrl";
