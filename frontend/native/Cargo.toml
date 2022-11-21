@@ -14,7 +14,7 @@ anyhow = { version = "1.0.63", features = ["backtrace"] }
 encoding_rs = "0.8.31"
 html5ever = "0.24.1"
 monolith = "2.6.2"
-flutter_rust_bridge = "1.42.0"
+flutter_rust_bridge = "1"
 url = "2.2.2"
 
 [dependencies.reqwest]

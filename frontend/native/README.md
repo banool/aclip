@@ -14,14 +14,14 @@ Note this issue re ffigen: https://github.com/fzyzcjy/flutter_rust_bridge/issues
 
 Make sure to build android like this:
 ```
-ANDROID_NDK_HOME='/Users/dport/Library/Android/sdk/ndk/24.0.8215888' flutter build appbundle
+ANDROID_NDK_HOME='/Users/dport/Library/Android/sdk/ndk/25.1.8937393/' flutter build appbundle
 ```
 
 To get the NDK working, run `./fix_ndk_gcc.sh`.
 
 To regenerate bindings, you might want to take this for a spin:
 ```
-cargo build && cargo build --release && cd .. && just && cd native
+just && cargo build && cargo build --release && cd .. && just && cd native
 ```
 
 If you decide to release this app for MacOS, you'll have to look into these steps again, I haven't done the MacOS stuff.

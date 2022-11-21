@@ -156,16 +156,23 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                     }
                     if (snapshot.hasError) {
                       return TransactionResultWidget(FullTransactionResult(
-                          false, null, getErrorString(snapshot.error!), null));
+                          false,
+                          false,
+                          null,
+                          getErrorString(snapshot.error!),
+                          null));
                     }
-                    if (snapshot.data!.committed &&
+                    FullTransactionResult result = snapshot.data!;
+                    // If the result was success and the says they don't want to see the
+                    // transaction page on success, just pop.
+                    if (result.success &&
                         !(sharedPreferences
                                 .getBool(keyShowTransactionSuccessPage) ??
                             defaultShowTransactionSuccessPage)) {
                       Navigator.pop(context);
-                      return SizedBox(width: 10, height: 10);
+                      return SizedBox(width: 1, height: 1);
                     }
-                    return TransactionResultWidget(snapshot.data!);
+                    return TransactionResultWidget(result);
                   }));
         });
     FullTransactionResult result = await removeItemFuture!;

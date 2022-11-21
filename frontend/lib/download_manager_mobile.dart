@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import 'bridge_definitions.dart';
 import 'constants.dart';
 import 'download_manager.dart';
 import 'globals.dart';

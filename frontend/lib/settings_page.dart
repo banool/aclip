@@ -68,7 +68,7 @@ class SettingsPageState extends State<SettingsPage> {
           initialValue: sharedPreferences.getBool(keyOnlyOfflineLinks) ??
               defaultOnlyOfflineLinks,
           title: getText(
-            "Only open links available offline",
+            "Only open offline versions of items",
           ),
           onToggle: (bool enabled) async {
             await sharedPreferences.setBool(keyOnlyOfflineLinks, enabled);
