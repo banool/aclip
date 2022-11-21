@@ -128,11 +128,13 @@ void main() async {
     SharedPreferences.setMockInitialValues({});
 
     PackageInfo.setMockInitialValues(
-        appName: "whatever",
-        packageName: "whatever",
-        version: "1.0.0",
-        buildNumber: "1",
-        buildSignature: "whatever");
+      appName: "whatever",
+      packageName: "whatever",
+      version: "1.0.0",
+      buildNumber: "1",
+      buildSignature: "whatever",
+      installerStore: null,
+    );
 
     await setup(pull: false);
 

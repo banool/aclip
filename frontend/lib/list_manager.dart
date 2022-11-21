@@ -12,6 +12,9 @@ import 'common.dart';
 import 'constants.dart';
 import 'globals.dart';
 
+const int maxGasAmount = 10000000;
+const int gasUnitPrice = 100;
+
 // TODO: I suspect that doing this is horifically insecure. Investigate.
 Uint8List nonce = Uint8List.fromList(List.filled(TweetNaCl.nonceLength, 1));
 
@@ -87,8 +90,8 @@ class FetchDataDummy {
 class ListManager extends ChangeNotifier {
   final AptosClientHelper aptosClientHelper =
       AptosClientHelper.fromDio(Dio(BaseOptions(
-    baseUrl:
-        sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl,
+    baseUrl: fixNodeUrl(
+        sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl),
     connectTimeout: 8000,
     receiveTimeout: 8000,
     sendTimeout: 8000,
@@ -109,7 +112,8 @@ class ListManager extends ChangeNotifier {
     String func = "${moduleAddress.withPrefix()}::$moduleName::initialize_list";
 
     return aptosClientHelper.buildSignSubmitWait(
-        AptosClientHelper.buildPayload(func, [], []), aptosAccount);
+        AptosClientHelper.buildPayload(func, [], []), aptosAccount,
+        maxGasAmount: maxGasAmount, gasUnitPrice: gasUnitPrice);
   }
 
   /*
@@ -243,7 +247,8 @@ class ListManager extends ChangeNotifier {
     }
 
     FullTransactionResult result = await aptosClientHelper.buildSignSubmitWait(
-        AptosClientHelper.buildPayload(function_, [], arguments), aptosAccount);
+        AptosClientHelper.buildPayload(function_, [], arguments), aptosAccount,
+        maxGasAmount: maxGasAmount, gasUnitPrice: gasUnitPrice);
 
     if (result.committed) {
       links![url] = LinkData(archived: false, secret: secret);
@@ -289,7 +294,8 @@ class ListManager extends ChangeNotifier {
     ];
 
     FullTransactionResult result = await aptosClientHelper.buildSignSubmitWait(
-        AptosClientHelper.buildPayload(function_, [], arguments), aptosAccount);
+        AptosClientHelper.buildPayload(function_, [], arguments), aptosAccount,
+        maxGasAmount: maxGasAmount, gasUnitPrice: gasUnitPrice);
 
     if (result.committed) {
       switch (action) {
