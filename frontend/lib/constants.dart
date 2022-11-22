@@ -7,7 +7,7 @@ const Color mainColor = Colors.indigo;
 
 // Constants for the move module.
 HexString moduleAddress = HexString.fromString(
-    "6286dfd5e2778ec069d5906cd774efdba93ab2bec71550fa69363482fbd814e7");
+    "b078d693856a65401d492f99ca0d6a29a0c5c0e371bc2521570a86e40d95f823");
 const String moduleName = "aclip";
 const String structName = "Root";
 
@@ -24,7 +24,7 @@ const String keyCachedUrls = "keyCachedUrls";
 const String keyAcknowledgedSecretCaveats = "keyAcknowledgedSecretCaveats";
 
 // Shared preferences defaults.
-const String defaultAptosNodeUrl = "https://testnet.aptoslabs.com/v1";
+const String defaultAptosNodeUrl = "https://fullnode.testnet.aptoslabs.com";
 const String? defaultPrivateKey = null;
 const bool defaultSecretByDefault = false;
 const bool defaultLaunchInExternalBrowser = true;

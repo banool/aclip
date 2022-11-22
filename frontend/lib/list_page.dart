@@ -115,11 +115,14 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     }
   }
 
-  Future<FullTransactionResult> removeItem(BuildContext context, String url,
-      LinkData linkData, RemoveItemAction removeItemAction) async {
+  Future<FullTransactionResult> removeItem(
+      BuildContext context,
+      String url,
+      LinkDataWrapper linkDataWrapper,
+      RemoveItemAction removeItemAction) async {
     setState(() {
       removeItemFuture =
-          listManager.removeItem(url, linkData, removeItemAction);
+          listManager.removeItem(url, linkDataWrapper, removeItemAction);
       switch (removeItemAction) {
         case RemoveItemAction.remove:
           currentAction = "Deleting";
@@ -302,7 +305,8 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     }
   }
 
-  Widget buildListItem(BuildContext context, String url, LinkData linkData) {
+  Widget buildListItem(
+      BuildContext context, String url, LinkDataWrapper linkDataWrapper) {
     DownloadManagerResult? downloadManagerResult =
         context.select<DownloadManager, DownloadManagerResult?>(
             (downloadManager) => downloadManager.urlToDownloadMetadata[url]);
@@ -381,7 +385,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
 
     return Card(
         child: Slidable(
-            key: ValueKey(url + "${linkData.archived}"),
+            key: ValueKey(url + "${linkDataWrapper.archived}"),
             endActionPane: ActionPane(
                 extentRatio: 0.5,
                 dragDismissible: false,
@@ -392,7 +396,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                     onPressed: (BuildContext context) async => await removeItem(
                         context,
                         url,
-                        linkData,
+                        linkDataWrapper,
                         showArchived
                             ? RemoveItemAction.unarchive
                             : RemoveItemAction.archive),
@@ -404,7 +408,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                   ),
                   SlidableAction(
                     onPressed: (BuildContext context) async => await removeItem(
-                        context, url, linkData, RemoveItemAction.remove),
+                        context, url, linkDataWrapper, RemoveItemAction.remove),
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                     label: "Delete",

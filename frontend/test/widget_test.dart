@@ -49,11 +49,12 @@ void main() {
 
     expect(url, decrypted);
 
-    LinkData linkData = LinkData(archived: true, secret: true);
+    LinkDataWrapper linkData = LinkDataWrapper(
+        archived: true, secret: true, tags: [], addedAtMicros: 100);
 
     var encryptedLinkData = linkData.encrypt(secretBox, nonce);
     var decryptedLinkData =
-        LinkData.decrypt(secretBox, encryptedLinkData, nonce);
+        LinkDataWrapper.decrypt(secretBox, encryptedLinkData, nonce, true);
 
     expect(decryptedLinkData.archived, true);
     expect(decryptedLinkData.secret, true);

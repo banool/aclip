@@ -6,6 +6,7 @@ module addr::aclip {
     use std::error;
     use std::signer;
     use std::vector;
+    use aptos_framework::timestamp;
     use aptos_std::simple_map;
 
     const E_NOT_INITIALIZED: u64 = 1;
@@ -47,6 +48,9 @@ module addr::aclip {
     }
 
     struct LinkData has drop, store {
+        /// When the item was added.
+        added_at_microseconds: u64,
+
         /// Any arbitrary tags the user wants to add.
         tags: vector<string::String>,
     }
@@ -104,7 +108,10 @@ module addr::aclip {
             i = i + 1;
         };
 
-        let link_data = LinkData {tags: tags};
+        let link_data = LinkData {
+            added_at_microseconds: timestamp::now_microseconds(),
+            tags: tags,
+        };
 
         let inner = &mut borrow_global_mut<Root>(addr).inner;
 
@@ -192,8 +199,10 @@ module addr::aclip {
         };
     }
 
-    #[test(account = @0x123)]
-    public entry fun test_add_remove_archive(account: signer) acquires Root {
+    #[test(aptos_framework = @aptos_framework, account = @0x123)]
+    public entry fun test_add_remove_archive(aptos_framework: &signer, account: signer) acquires Root {
+        timestamp::set_time_has_started_for_testing(aptos_framework);
+
         let addr = signer::address_of(&account);
 
         // Initialize a list on account.

@@ -195,8 +195,8 @@ class DownloadManager extends ChangeNotifier {
     if (!shouldDownload(url) && !forceFromInternet) {
       return;
     }
-    var f = download(url, forceFromInternet: forceFromInternet);
     urlToDownloadMetadata[url] = null;
+    var f = download(url, forceFromInternet: forceFromInternet);
     notifyListeners();
 
     DownloadMetadata? downloadMetadata;
@@ -302,17 +302,25 @@ class DownloadManager extends ChangeNotifier {
     print("Cleared cache");
   }
 
-  Future<LinkedHashMap<String, LinkData>> populateLinksFromStorage() async {
-    LinkedHashMap<String, LinkData> out = LinkedHashMap();
+  Future<LinkedHashMap<String, LinkDataWrapper>>
+      populateLinksFromStorage() async {
+    LinkedHashMap<String, LinkDataWrapper> out = LinkedHashMap();
     List<String> keys = sharedPreferences.getStringList(keyCachedUrls) ?? [];
+    int addedAtMicros = 1;
     for (String url in keys) {
       var fileNameFromUrl = getFileNameFromUrl(url);
       bool? archived = sharedPreferences
               .getBool(StorageStuff.getArchivedKey(fileNameFromUrl)) ??
           false;
 
-      var linkData = LinkData(archived: archived, secret: false);
+      var linkData = LinkDataWrapper(
+        archived: archived,
+        secret: false,
+        tags: [],
+        addedAtMicros: addedAtMicros,
+      );
       out[url] = linkData;
+      addedAtMicros += 1;
     }
     return out;
   }

@@ -1,7 +1,7 @@
 name: aclip
 description: Bookmarks, powered by Aptos
 
-version: 1.1.86+133
+version: 1.1.88+135
 
 environment:
   sdk: ">=2.16.2 <3.0.0"

@@ -110,8 +110,9 @@ class DownloadManager extends ChangeNotifier {
     urlToDownloadMetadata.clear();
   }
 
-  Future<LinkedHashMap<String, LinkData>> populateLinksFromStorage() async {
-    LinkedHashMap<String, LinkData> out = LinkedHashMap();
+  Future<LinkedHashMap<String, LinkDataWrapper>>
+      populateLinksFromStorage() async {
+    LinkedHashMap<String, LinkDataWrapper> out = LinkedHashMap();
     return out;
   }
 }
