@@ -87,7 +87,7 @@ jobs:
         path: frontend/build/web
 
 
-  # Deploy web using the artifact from the previous job.
+  # Deploy web to GitHub pages using the artifact from the previous job.
   deploy_web:
     runs-on: ubuntu-latest
     needs: [build_web]

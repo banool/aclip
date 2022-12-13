@@ -1,5 +1,4 @@
 // If ever updating this version, also update:
-// - move/Move.toml
 // - frontend/lib/constants.dart
 module addr::aclip {
     use std::string;

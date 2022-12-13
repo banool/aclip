@@ -8,7 +8,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:pinenacl/tweetnacl.dart';
 import 'package:pinenacl/x25519.dart';
-import 'package:url_launcher/link.dart';
 
 import 'common.dart';
 import 'constants.dart';

@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:aclip/js_controller.dart';
 import 'package:aptos_sdk_dart/aptos_client_helper.dart';
 import 'package:flutter/foundation.dart';
