@@ -37,7 +37,7 @@ dynamic myDecryptWithSecretBox(
   Uint8List nonce =
       Uint8List.fromList(List.filled(TweetNaCl.nonceLength, nonceRaw));
   var decrypted = secretBox.decrypt(
-      ByteList.fromList(HexString.fromString(encrypted).toBytes()),
+      ByteList(HexString.fromString(encrypted).toBytes()),
       nonce: nonce);
   return json.decode(String.fromCharCodes(decrypted));
 }
@@ -122,9 +122,9 @@ class ListManager extends ChangeNotifier {
       AptosClientHelper.fromDio(Dio(BaseOptions(
     baseUrl: fixNodeUrl(
         sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl),
-    connectTimeout: 8000,
-    receiveTimeout: 8000,
-    sendTimeout: 8000,
+    connectTimeout: Duration(milliseconds: 8000),
+    receiveTimeout: Duration(milliseconds: 8000),
+    sendTimeout: Duration(milliseconds: 8000),
   )));
   final AptosAccount aptosAccount;
 
