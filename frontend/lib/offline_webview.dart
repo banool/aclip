@@ -19,20 +19,36 @@ class OfflineWebView extends StatefulWidget {
 class OfflineWebViewState extends State<OfflineWebView> {
   @override
   Widget build(BuildContext context) {
-    var webView = WebView(
-      initialUrl: 'about:blank',
-      javascriptMode: JavascriptMode.unrestricted,
-      onWebResourceError: (WebResourceError e) {
-        print("Web resource error: ${e.description}, ${e.errorType}");
-      },
-      debuggingEnabled: true,
-      onWebViewCreated: (WebViewController controller) async {
-        File(getFilePathFromUrl(widget.url))
-            .readAsString()
-            .then((content) => controller.loadHtmlString(content))
-            .onError((error, stackTrace) =>
-                showErrorInDialog(context, error ?? Error()));
-      },
+    var controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(const Color(0x00000000))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onProgress: (int progress) {
+            // Update loading bar.
+            print("Loading progress: $progress");
+          },
+          onPageStarted: (String url) {
+            print("Started loading page $url");
+          },
+          onPageFinished: (String url) {
+            print("Finished loading page $url");
+          },
+          onWebResourceError: (WebResourceError error) {
+            print("Error loading page: $error");
+            // Show an error snackbar and navigate back.
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Failed to load page: ${error.description}"),
+              ),
+            );
+            Navigator.of(context).pop();
+          },
+        ),
+      )
+      ..loadFile(getFilePathFromUrl(widget.url));
+    var webView = WebViewWidget(
+      controller: controller,
     );
     return ColoredSafeArea(
         child: buildTopLevelScaffold(context, webView, isSubPage: true));

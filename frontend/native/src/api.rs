@@ -33,7 +33,7 @@ const DEFAULT_USER_AGENT: &'static str =
 /// You can't return the unit type, hence the bool here.
 /// https://github.com/fzyzcjy/flutter_rust_bridge/issues/197
 pub fn download_page(options: Options) -> Result<bool> {
-    let mut target: String = options.target.clone();
+    let target: String = options.target.clone();
 
     // Check if target was provided
     if target.len() == 0 {
@@ -49,18 +49,14 @@ pub fn download_page(options: Options) -> Result<bool> {
 
     let target_url: Url;
 
+    println!("Downloading target: {}", &target);
+
     // Determine exact target URL
     match Url::parse(&target.clone()) {
-        Ok(parsed_url) => {
-            if parsed_url.scheme() == "data"
-                || parsed_url.scheme() == "file"
-                || (parsed_url.scheme() == "http" || parsed_url.scheme() == "https")
-            {
-                target_url = parsed_url;
-            } else {
-                bail!("Unsupported target URL type: {}", &parsed_url.scheme());
-            }
-        }
+        Ok(parsed_url) => match parsed_url.scheme() {
+            "data" | "file" | "http" | "https" => target_url = parsed_url,
+            wildcard => bail!("Unsupported target URL scheme: {}", wildcard),
+        },
         Err(_err) => {
             // Failed to parse given base URL (perhaps it's a filesystem path?)
             let path: &Path = Path::new(&target);
@@ -77,8 +73,8 @@ pub fn download_page(options: Options) -> Result<bool> {
             } else {
                 // Last chance, now we do what browsers do:
                 // prepend "http://" and hope it points to a website
-                target.insert_str(0, "http://");
-                target_url = Url::parse(&target).unwrap();
+                target_url =
+                    Url::parse(&format!("http://{hopefully_url}", hopefully_url = &target)).unwrap()
             }
         }
     }
@@ -137,7 +133,7 @@ pub fn download_page(options: Options) -> Result<bool> {
                 document_encoding = charset;
             }
             Err(e) => {
-                bail!("Could not retrieve target document: {}", e);
+                bail!("Could not retrieve target document: {:#}", e);
             }
         }
     } else {
@@ -277,8 +273,10 @@ pub fn download_page(options: Options) -> Result<bool> {
 pub struct _Options {
     pub no_audio: bool,
     pub base_url: Option<String>,
+    pub blacklist_domains: bool,
     pub no_css: bool,
     pub charset: Option<String>,
+    pub domains: Option<Vec<String>>,
     pub ignore_errors: bool,
     pub no_frames: bool,
     pub no_fonts: bool,
@@ -331,4 +329,39 @@ pub fn platform() -> Platform {
 
 pub fn rust_release_mode() -> bool {
     cfg!(not(debug_assertions))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_download_page() {
+        let options = Options {
+            no_audio: false,
+            base_url: None,
+            blacklist_domains: false,
+            no_css: false,
+            charset: None,
+            domains: None,
+            ignore_errors: false,
+            no_frames: false,
+            no_fonts: false,
+            no_images: false,
+            isolate: false,
+            no_js: false,
+            insecure: false,
+            no_metadata: false,
+            output: "/tmp/test.html".to_string(),
+            silent: false,
+            timeout: 0,
+            user_agent: None,
+            no_video: false,
+            target: "https://www.rust-lang.org/".to_string(),
+            no_color: false,
+            unwrap_noscript: false,
+        };
+        let result = download_page(options);
+        assert!(result.is_ok());
+    }
 }

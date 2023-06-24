@@ -54,9 +54,11 @@ Future<void> setup({bool pull = true, setupDownloadDirectory = true}) async {
     packageInfoRetrieveError = "Running as browser extension";
   }
 
+  /*
   if (!kIsWeb && Platform.isAndroid) {
     WebView.platform = SurfaceAndroidWebView();
   }
+  */
 
   print("Setup finished");
 }

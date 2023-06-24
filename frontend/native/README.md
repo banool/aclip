@@ -1,14 +1,14 @@
-# Flutter -> Rust bindings
+ld && cargo build --releaseq:# Flutter -> Rust bindings
 The reason we have these bindings is to leverage the Monolith library for downloading web pages.
 
 To get the Flutter -> Rust bindings to work, you have to follow these instructions:
-- http://cjycode.com/flutter_rust_bridge/template/setup_android.html
-- http://cjycode.com/flutter_rust_bridge/template/setup_ios.html
-- http://cjycode.com/flutter_rust_bridge/template/generate_install.html
+- https://cjycode.com/flutter_rust_bridge/tutorial/setup_android.html
+- https://cjycode.com/flutter_rust_bridge/template/setup_ios.html
+- https://cjycode.com/flutter_rust_bridge/template/generate_install.html
 
 I also followed other instructions already that you shouldn't need to do again, e.g.
-- http://cjycode.com/flutter_rust_bridge/integrate/ios_linking.html
-- http://cjycode.com/flutter_rust_bridge/integrate/ios_headers.html
+- https://cjycode.com/flutter_rust_bridge/integrate/ios_linking.html
+- https://cjycode.com/flutter_rust_bridge/integrate/ios_headers.html
 
 Note this issue re ffigen: https://github.com/fzyzcjy/flutter_rust_bridge/issues/478.
 

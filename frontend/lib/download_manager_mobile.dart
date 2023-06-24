@@ -18,10 +18,13 @@ const int cacheTtlSecs = 60 * 60 * 24 * 31;
 Options getOptionsFromSharedPrefs(String targetUrl, String outputPath) {
   bool insecure =
       !(sharedPreferences.getBool(keyForceHttpsOnly) ?? defaultForceHttpsOnly);
+  print("outputPath: $outputPath");
   return Options(
       noAudio: false,
       noCss: false,
       ignoreErrors: false,
+      blacklistDomains: false,
+      domains: null,
       noFrames: false,
       noFonts: false,
       noImages: false,
@@ -31,7 +34,7 @@ Options getOptionsFromSharedPrefs(String targetUrl, String outputPath) {
       noMetadata: false,
       output: outputPath,
       silent: false,
-      timeout: 120,
+      timeout: 90,
       noVideo: false,
       target: targetUrl,
       noColor: false,
@@ -42,6 +45,7 @@ Options getOptionsFromSharedPrefs(String targetUrl, String outputPath) {
 Future<String> _downloadPage(String targetUrl) async {
   String outputPath = getFilePathFromUrl(targetUrl);
   Options options = getOptionsFromSharedPrefs(targetUrl, outputPath);
+  print(options.target);
   await api.downloadPage(options: options);
   return outputPath;
 }
