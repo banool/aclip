@@ -18,11 +18,22 @@ pub fn wire_rust_release_mode(port_: MessagePort) {
 
 // Section: allocate functions
 
+// Section: related functions
+
 // Section: impl Wire2Api
 
 impl Wire2Api<String> for String {
     fn wire2api(self) -> String {
         self
+    }
+}
+impl Wire2Api<Vec<String>> for JsValue {
+    fn wire2api(self) -> Vec<String> {
+        self.dyn_into::<JsArray>()
+            .unwrap()
+            .iter()
+            .map(Wire2Api::wire2api)
+            .collect()
     }
 }
 
@@ -31,36 +42,43 @@ impl Wire2Api<Option<String>> for Option<String> {
         self.map(Wire2Api::wire2api)
     }
 }
+impl Wire2Api<Option<Vec<String>>> for Option<JsValue> {
+    fn wire2api(self) -> Option<Vec<String>> {
+        self.map(Wire2Api::wire2api)
+    }
+}
 impl Wire2Api<Options> for JsValue {
     fn wire2api(self) -> Options {
         let self_ = self.dyn_into::<JsArray>().unwrap();
         assert_eq!(
             self_.length(),
-            20,
-            "Expected 20 elements, got {}",
+            22,
+            "Expected 22 elements, got {}",
             self_.length()
         );
         Options {
             no_audio: self_.get(0).wire2api(),
             base_url: self_.get(1).wire2api(),
-            no_css: self_.get(2).wire2api(),
-            charset: self_.get(3).wire2api(),
-            ignore_errors: self_.get(4).wire2api(),
-            no_frames: self_.get(5).wire2api(),
-            no_fonts: self_.get(6).wire2api(),
-            no_images: self_.get(7).wire2api(),
-            isolate: self_.get(8).wire2api(),
-            no_js: self_.get(9).wire2api(),
-            insecure: self_.get(10).wire2api(),
-            no_metadata: self_.get(11).wire2api(),
-            output: self_.get(12).wire2api(),
-            silent: self_.get(13).wire2api(),
-            timeout: self_.get(14).wire2api(),
-            user_agent: self_.get(15).wire2api(),
-            no_video: self_.get(16).wire2api(),
-            target: self_.get(17).wire2api(),
-            no_color: self_.get(18).wire2api(),
-            unwrap_noscript: self_.get(19).wire2api(),
+            blacklist_domains: self_.get(2).wire2api(),
+            no_css: self_.get(3).wire2api(),
+            charset: self_.get(4).wire2api(),
+            domains: self_.get(5).wire2api(),
+            ignore_errors: self_.get(6).wire2api(),
+            no_frames: self_.get(7).wire2api(),
+            no_fonts: self_.get(8).wire2api(),
+            no_images: self_.get(9).wire2api(),
+            isolate: self_.get(10).wire2api(),
+            no_js: self_.get(11).wire2api(),
+            insecure: self_.get(12).wire2api(),
+            no_metadata: self_.get(13).wire2api(),
+            output: self_.get(14).wire2api(),
+            silent: self_.get(15).wire2api(),
+            timeout: self_.get(16).wire2api(),
+            user_agent: self_.get(17).wire2api(),
+            no_video: self_.get(18).wire2api(),
+            target: self_.get(19).wire2api(),
+            no_color: self_.get(20).wire2api(),
+            unwrap_noscript: self_.get(21).wire2api(),
         }
     }
 }
@@ -84,6 +102,11 @@ impl Wire2Api<bool> for JsValue {
 }
 impl Wire2Api<Option<String>> for JsValue {
     fn wire2api(self) -> Option<String> {
+        (!self.is_undefined() && !self.is_null()).then(|| self.wire2api())
+    }
+}
+impl Wire2Api<Option<Vec<String>>> for JsValue {
+    fn wire2api(self) -> Option<Vec<String>> {
         (!self.is_undefined() && !self.is_null()).then(|| self.wire2api())
     }
 }

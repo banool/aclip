@@ -120,11 +120,13 @@ class ScreenshotNameInfo {
 }
 
 void main() async {
+  await Future.delayed(const Duration(seconds: 2));
   final IntegrationTestWidgetsFlutterBinding binding =
       IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets("takeScreenshots", (WidgetTester tester) async {
+    await Future.delayed(const Duration(seconds: 2));
     SharedPreferences.setMockInitialValues({});
 
     PackageInfo.setMockInitialValues(
