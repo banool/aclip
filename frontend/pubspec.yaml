@@ -11,8 +11,10 @@ dependencies:
   aptos_sdk_dart: ^1.2.0
   built_collection:
   built_value:
+  cookie_jar:
   crypto:
   dio:
+  dio_cookie_manager:
   flutter:
     sdk: flutter
   flutter_slidable:

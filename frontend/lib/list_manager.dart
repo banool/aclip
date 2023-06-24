@@ -8,6 +8,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:pinenacl/tweetnacl.dart';
 import 'package:pinenacl/x25519.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:cookie_jar/cookie_jar.dart';
 
 import 'common.dart';
 import 'constants.dart';
@@ -118,14 +120,6 @@ class FetchDataDummy {
 }
 
 class ListManager extends ChangeNotifier {
-  final AptosClientHelper aptosClientHelper =
-      AptosClientHelper.fromDio(Dio(BaseOptions(
-    baseUrl: fixNodeUrl(
-        sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl),
-    connectTimeout: Duration(milliseconds: 8000),
-    receiveTimeout: Duration(milliseconds: 8000),
-    sendTimeout: Duration(milliseconds: 8000),
-  )));
   final AptosAccount aptosAccount;
 
   // For encrypting and decrypting secrets we write to the chain.
@@ -138,10 +132,22 @@ class ListManager extends ChangeNotifier {
 
   Future<FetchDataDummy>? fetchDataFuture;
 
+  AptosClientHelper getAptosClientHelper() {
+    final dio = Dio();
+    dio.interceptors.add(cookieManager);
+    return AptosClientHelper.fromDio(Dio(BaseOptions(
+      baseUrl: fixNodeUrl(
+          sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl),
+      connectTimeout: Duration(milliseconds: 8000),
+      receiveTimeout: Duration(milliseconds: 8000),
+      sendTimeout: Duration(milliseconds: 8000),
+    )));
+  }
+
   Future<FullTransactionResult> initializeList() async {
     String func = "${moduleAddress.withPrefix()}::$moduleName::initialize_list";
 
-    return aptosClientHelper.buildSignSubmitWait(
+    return getAptosClientHelper().buildSignSubmitWait(
         AptosClientHelper.buildPayload(func, [], []), aptosAccount,
         maxGasAmount: maxGasAmount, gasUnitPrice: gasUnitPrice);
   }
@@ -209,7 +215,8 @@ class ListManager extends ChangeNotifier {
     var resourceType = buildResourceType();
 
     MoveResource resource;
-    resource = await unwrapClientCall(aptosClientHelper.client
+    resource = await unwrapClientCall(getAptosClientHelper()
+        .client
         .getAccountsApi()
         .getAccountResource(
             address: aptosAccount.address.noPrefix(),
@@ -320,9 +327,12 @@ class ListManager extends ChangeNotifier {
       function_ += "add";
     }
 
-    FullTransactionResult result = await aptosClientHelper.buildSignSubmitWait(
-        AptosClientHelper.buildPayload(function_, [], arguments), aptosAccount,
-        maxGasAmount: maxGasAmount, gasUnitPrice: gasUnitPrice);
+    FullTransactionResult result = await getAptosClientHelper()
+        .buildSignSubmitWait(
+            AptosClientHelper.buildPayload(function_, [], arguments),
+            aptosAccount,
+            maxGasAmount: maxGasAmount,
+            gasUnitPrice: gasUnitPrice);
 
     if (result.committed) {
       links![url] = linkDataWrapper;
@@ -368,9 +378,12 @@ class ListManager extends ChangeNotifier {
       BoolJsonObject(linkDataWrapper.secret),
     ];
 
-    FullTransactionResult result = await aptosClientHelper.buildSignSubmitWait(
-        AptosClientHelper.buildPayload(function_, [], arguments), aptosAccount,
-        maxGasAmount: maxGasAmount, gasUnitPrice: gasUnitPrice);
+    FullTransactionResult result = await getAptosClientHelper()
+        .buildSignSubmitWait(
+            AptosClientHelper.buildPayload(function_, [], arguments),
+            aptosAccount,
+            maxGasAmount: maxGasAmount,
+            gasUnitPrice: gasUnitPrice);
 
     if (result.committed) {
       switch (action) {
