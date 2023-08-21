@@ -50,7 +50,7 @@ android {
 
     defaultConfig {
         applicationId "com.banool.aclip"
-        minSdkVersion "22"
+        minSdkVersion "33"
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

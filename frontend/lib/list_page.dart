@@ -280,25 +280,24 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
   Future<void> myLaunchUrl(
     String url,
   ) async {
-    LaunchMode launchMode;
-    if (sharedPreferences.getBool(keyLaunchInExternalBrowser) ??
-        defaultLaunchInExternalBrowser) {
-      launchMode = LaunchMode.externalApplication;
-    } else {
-      launchMode = LaunchMode.platformDefault;
-    }
+    bool useExternalBrowser =
+        sharedPreferences.getBool(keyLaunchInExternalBrowser) ??
+            defaultLaunchInExternalBrowser;
 
     bool offlineOnly = sharedPreferences.getBool(keyOnlyOfflineLinks) ??
         defaultOnlyOfflineLinks;
 
-    if (kIsWeb || (await canConnectToInternet()) && !offlineOnly) {
+    bool showOfflineContent = !(await canConnectToInternet()) || offlineOnly;
+
+    print("Launching url $url");
+    if (kIsWeb || !showOfflineContent && useExternalBrowser) {
       await launchUrl(
         Uri.parse(url),
-        mode: launchMode,
       );
     } else {
-      await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return OfflineWebView(url);
+      final navigator = Navigator.of(context);
+      await navigator.push(MaterialPageRoute(builder: (context) {
+        return InAppWebView(url, viewOffline: showOfflineContent);
       }));
     }
   }

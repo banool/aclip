@@ -7,16 +7,18 @@ import 'common.dart';
 import 'download_manager.dart';
 import 'page_selector.dart';
 
-class OfflineWebView extends StatefulWidget {
-  const OfflineWebView(this.url, {Key? key}) : super(key: key);
+class InAppWebView extends StatefulWidget {
+  const InAppWebView(this.url, {Key? key, this.viewOffline = false})
+      : super(key: key);
 
   final String url;
+  final bool viewOffline;
 
   @override
-  State<OfflineWebView> createState() => OfflineWebViewState();
+  State<InAppWebView> createState() => InAppWebViewState();
 }
 
-class OfflineWebViewState extends State<OfflineWebView> {
+class InAppWebViewState extends State<InAppWebView> {
   @override
   Widget build(BuildContext context) {
     var controller = WebViewController()
@@ -45,8 +47,12 @@ class OfflineWebViewState extends State<OfflineWebView> {
             Navigator.of(context).pop();
           },
         ),
-      )
-      ..loadFile(getFilePathFromUrl(widget.url));
+      );
+    if (widget.viewOffline) {
+      controller = controller..loadFile(getFilePathFromUrl(widget.url));
+    } else {
+      controller = controller..loadRequest(Uri.parse(widget.url));
+    }
     var webView = WebViewWidget(
       controller: controller,
     );
