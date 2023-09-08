@@ -1,9 +1,7 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import 'common.dart';
 import 'download_manager.dart';
 import 'page_selector.dart';
 

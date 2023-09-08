@@ -252,11 +252,11 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
           }));
         });
     Widget body = RefreshIndicator(
-      child: listView,
       onRefresh: () async {
         await listManager.pull();
       },
       displacement: 2,
+      child: listView,
     );
     if (runningAsBrowserExtension) {
       body = Stack(children: [
@@ -382,7 +382,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
 
     return Card(
         child: Slidable(
-            key: ValueKey(url + "${linkDataWrapper.archived}"),
+            key: ValueKey("$url${linkDataWrapper.archived}"),
             endActionPane: ActionPane(
                 extentRatio: 0.5,
                 dragDismissible: false,
