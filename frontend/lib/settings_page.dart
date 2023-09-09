@@ -1,3 +1,4 @@
+import 'package:aclip/import_landing_page.dart';
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -210,6 +211,25 @@ class SettingsPageState extends State<SettingsPage> {
             onPressed: (BuildContext context) async {
               Uri uri = Uri.https("github.com", "/banool/aclip");
               await launchUrl(uri);
+            },
+          ),
+        ],
+        margin: margin,
+      ),
+      SettingsSection(
+        title: const Text('Import / Export'),
+        tiles: [
+          SettingsTile.navigation(
+            title: getText(
+              "Import data",
+            ),
+            trailing: Container(),
+            onPressed: (BuildContext context) async {
+              return await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ImportLandingPage(),
+                  ));
             },
           ),
         ],

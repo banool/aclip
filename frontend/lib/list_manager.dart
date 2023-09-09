@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:math';
 
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
@@ -144,9 +145,11 @@ class ListManager extends ChangeNotifier {
 
   Future<FullTransactionResult> initializeList() async {
     String func = "${moduleAddress.withPrefix()}::$moduleName::initialize_list";
-
-    return getAptosClientHelper().buildSignSubmitWait(
-        AptosClientHelper.buildPayload(func, [], []), aptosAccount,
+    print("Function: $func");
+    var payload = AptosClientHelper.buildPayload(func, [], []);
+    print("Submitting payload $payload");
+    return await getAptosClientHelper().buildSignSubmitWait(
+        payload, aptosAccount,
         maxGasAmount: maxGasAmount, gasUnitPrice: gasUnitPrice);
   }
 

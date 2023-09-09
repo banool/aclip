@@ -22,30 +22,31 @@ class InitializePage extends StatefulWidget {
 class InitializePageState extends State<InitializePage> {
   Future? onPressedFuture;
 
-  Future<FullTransactionResult> initializeList() async {
-    FullTransactionResult result = await listManager.initializeList();
-    if (result.committed) {
-      try {
+  Future<void> initializeList() async {
+    try {
+      print("Initializing list...");
+      FullTransactionResult result = await listManager.initializeList();
+      if (result.committed) {
+        print("Pulling...");
         await listManager.triggerPull();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Successfully initialized list!"),
         ));
         Provider.of<PageSelectorController>(context, listen: false)
             .refreshParent();
-      } catch (e) {
-        print("Pulling after initialize failed: $e");
-        showErrorInDialog(context, e);
+      } else {
+        await myShowDialog(context, TransactionResultWidget(result));
         setState(() {
           onPressedFuture = null;
         });
       }
-    } else {
-      await myShowDialog(context, TransactionResultWidget(result));
+    } catch (e) {
+      print("Pulling after initialize failed: $e");
+      showErrorInDialog(context, e);
       setState(() {
         onPressedFuture = null;
       });
     }
-    return result;
   }
 
   Future<void> triggerInitializeList() async {
