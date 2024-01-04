@@ -6,7 +6,7 @@ import 'globals.dart';
 import 'page_selector.dart';
 
 class DownloadLogsPage extends StatelessWidget {
-  const DownloadLogsPage({Key? key}) : super(key: key);
+  const DownloadLogsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class DownloadLogsPage extends StatelessWidget {
       }
     });
     if (errors.isEmpty) {
-      body = Center(child: Text("All is well!"));
+      body = const Center(child: Text("All is well!"));
     } else {
       body = ListView.builder(
           itemCount: errors.length,

@@ -7,17 +7,17 @@ const double fontSizeLarge = 24;
 const double fontSize = 17;
 
 class ImportLandingPage extends StatelessWidget {
-  const ImportLandingPage({Key? key}) : super(key: key);
+  const ImportLandingPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     Widget body = Center(
         child: Padding(
-            padding: EdgeInsets.only(bottom: 10, left: 20, right: 32, top: 20),
+            padding: const EdgeInsets.only(bottom: 10, left: 20, right: 32, top: 20),
             child:
                 Column(mainAxisAlignment: MainAxisAlignment.start, children: [
               ElevatedButton(
-                  child: Text(
+                  child: const Text(
                     "Import from Pocket",
                     textAlign: TextAlign.center,
                   ),
@@ -25,7 +25,7 @@ class ImportLandingPage extends StatelessWidget {
                     await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ImportFromPocketPage(),
+                          builder: (context) => const ImportFromPocketPage(),
                         ));
                   }),
             ])));

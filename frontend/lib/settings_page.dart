@@ -14,7 +14,7 @@ import 'globals.dart';
 import 'page_selector.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => SettingsPageState();
@@ -31,7 +31,7 @@ class SettingsPageState extends State<SettingsPage> {
     SettingsSection? browserExtensionSettingsSection;
     if (runningAsBrowserExtension) {
       browserExtensionSettingsSection = SettingsSection(
-        title: Text('Browser Extension'),
+        title: const Text('Browser Extension'),
         tiles: [
           SettingsTile.switchTile(
             initialValue:
@@ -102,7 +102,7 @@ class SettingsPageState extends State<SettingsPage> {
               return await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DownloadLogsPage(),
+                    builder: (context) => const DownloadLogsPage(),
                   ));
             }),
       ];
@@ -110,7 +110,7 @@ class SettingsPageState extends State<SettingsPage> {
 
     List<AbstractSettingsSection?> sections = [
       SettingsSection(
-        title: Text('Account'),
+        title: const Text('Account'),
         tiles: [
           SettingsTile.switchTile(
             initialValue: sharedPreferences.getBool(keySecretByDefault) ??
@@ -168,13 +168,13 @@ class SettingsPageState extends State<SettingsPage> {
         margin: margin,
       ),
       SettingsSection(
-        title: Text('Links'),
+        title: const Text('Links'),
         tiles: linksTiles,
         margin: margin,
       ),
       browserExtensionSettingsSection,
       SettingsSection(
-        title: Text('Connection'),
+        title: const Text('Connection'),
         tiles: [
           SettingsTile.navigation(
               title: getText(
@@ -228,7 +228,7 @@ class SettingsPageState extends State<SettingsPage> {
               return await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ImportLandingPage(),
+                    builder: (context) => const ImportLandingPage(),
                   ));
             },
           ),
@@ -247,7 +247,7 @@ class SettingsPageState extends State<SettingsPage> {
               return await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => LegalInformationPage(),
+                    builder: (context) => const LegalInformationPage(),
                   ));
             },
           ),
@@ -260,7 +260,7 @@ class SettingsPageState extends State<SettingsPage> {
               return await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BuildInformationPage(),
+                    builder: (context) => const BuildInformationPage(),
                   ));
             },
           )
@@ -304,7 +304,7 @@ Future<bool> showChangeStringSharedPrefDialog(
   TextEditingController textController =
       TextEditingController(text: currentValue);
   TextField textField = TextField(
-    key: ValueKey("myTextField"),
+    key: const ValueKey("myTextField"),
     controller: textController,
   );
   // ignore: deprecated_member_use
@@ -316,7 +316,7 @@ Future<bool> showChangeStringSharedPrefDialog(
   );
   // ignore: deprecated_member_use
   Widget continueButton = ElevatedButton(
-    key: ValueKey("continueButton"),
+    key: const ValueKey("continueButton"),
     child: Text(confirmText),
     onPressed: () async {
       String newValue = textController.text.trim();
@@ -339,18 +339,18 @@ Future<bool> showChangeStringSharedPrefDialog(
   AlertDialog alert = AlertDialog(
     title: Row(children: [
       Text(title),
-      Spacer(),
+      const Spacer(),
       IconButton(
           onPressed: () async {
             var data = await Clipboard.getData(Clipboard.kTextPlain);
             textController.text = data?.text ?? "";
           },
-          icon: Icon(Icons.paste)),
+          icon: const Icon(Icons.paste)),
       IconButton(
           onPressed: () {
             textController.text = defaultValue ?? "";
           },
-          icon: Icon(Icons.restore))
+          icon: const Icon(Icons.restore))
     ]),
     content: textField,
     actions: [
@@ -406,17 +406,17 @@ Future<void> runUpdatePrivateKeyDialog(BuildContext context) async {
 }
 
 class LegalInformationPage extends StatelessWidget {
-  const LegalInformationPage({Key? key}) : super(key: key);
+  const LegalInformationPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Widget body = Center(
+    Widget body = const Center(
         child: Padding(
             padding: EdgeInsets.only(bottom: 10, left: 20, right: 32, top: 20),
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
-                children: const [
+                children: [
                   Text(
                       "This app is the sole work of the developer. "
                       "It is in no way affiliated with Aptos Labs / Matonee.\n",
@@ -434,7 +434,7 @@ class LegalInformationPage extends StatelessWidget {
 }
 
 class BuildInformationPage extends StatelessWidget {
-  const BuildInformationPage({Key? key}) : super(key: key);
+  const BuildInformationPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -442,8 +442,8 @@ class BuildInformationPage extends StatelessWidget {
     if (packageInfo == null) {
       body = Center(
           child: Column(children: [
-        Text("Failed to determine build information"),
-        Padding(padding: EdgeInsets.only(top: 20)),
+        const Text("Failed to determine build information"),
+        const Padding(padding: EdgeInsets.only(top: 20)),
         Text("$packageInfoRetrieveError")
       ]));
     } else {
@@ -451,7 +451,7 @@ class BuildInformationPage extends StatelessWidget {
       body = Center(
           child: Padding(
               padding:
-                  EdgeInsets.only(bottom: 10, left: 20, right: 32, top: 20),
+                  const EdgeInsets.only(bottom: 10, left: 20, right: 32, top: 20),
               child:
                   Column(mainAxisAlignment: MainAxisAlignment.start, children: [
                 Text(
@@ -475,7 +475,7 @@ class BuildInformationPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 TextButton(
-                  child: Text(
+                  child: const Text(
                     "Bookmark icon created by Freekpik - Flaticon\n",
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.lightBlue),
@@ -531,7 +531,7 @@ Future<bool> confirmAcknowledgedSecretsCaveats(BuildContext context) async {
       RichText(
           text: TextSpan(
         children: [
-          TextSpan(
+          const TextSpan(
             text: "Warning: Storing encrypted private information in a "
                 "publicly accessible location (I.e. the Aptos blockchain) "
                 "is only safe so long as you never lose your private key / "
@@ -549,7 +549,7 @@ Future<bool> confirmAcknowledgedSecretsCaveats(BuildContext context) async {
                   await launchUrl(Uri.parse(
                       "https://crypto.stackexchange.com/questions/46848/can-private-data-be-encrypted-and-stored-safely-in-public"));
                 },
-              style: TextStyle(
+              style: const TextStyle(
                   color: Colors.blue,
                   fontSize: 16,
                   fontWeight: FontWeight.w300)),

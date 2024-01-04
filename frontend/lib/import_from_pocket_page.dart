@@ -15,7 +15,7 @@ import 'page_selector.dart';
 // - Add ability to pause
 // - Prevent duplicate entries
 class ImportFromPocketPage extends StatefulWidget {
-  const ImportFromPocketPage({Key? key}) : super(key: key);
+  const ImportFromPocketPage({super.key});
 
   @override
   State<ImportFromPocketPage> createState() => ImportFromPocketPageState();
@@ -88,9 +88,9 @@ class ImportFromPocketPageState extends State<ImportFromPocketPage> {
   @override
   Widget build(BuildContext context) {
     List<Widget?> childen = [
-      Padding(padding: EdgeInsets.only(top: 20)),
+      const Padding(padding: EdgeInsets.only(top: 20)),
       ElevatedButton(
-          child: Text(
+          child: const Text(
             "Select File",
             textAlign: TextAlign.center,
           ),
@@ -102,7 +102,7 @@ class ImportFromPocketPageState extends State<ImportFromPocketPage> {
       selectedFile != null && numImported == null
           ? ElevatedButton(
               onPressed: selectedFile == null ? null : import,
-              child: Text(
+              child: const Text(
                 "Import",
                 textAlign: TextAlign.center,
               ))
@@ -115,7 +115,7 @@ class ImportFromPocketPageState extends State<ImportFromPocketPage> {
           : null,
       currentlyImporting != null
           ? (numImported == numToImport
-              ? Text(
+              ? const Text(
                   "Done!",
                   textAlign: TextAlign.center,
                 )

@@ -10,7 +10,7 @@ platform :ios do
       password: ENV["MATCH_KEYCHAIN_PASSWORD"],
       default_keychain: true,
       unlock: true,
-      timeout: 3600,
+      timeout: 0,
       lock_when_sleeps: false
     )
     match(
@@ -46,7 +46,7 @@ platform :ios do
       password: ENV["MATCH_KEYCHAIN_PASSWORD"],
       default_keychain: true,
       unlock: true,
-      timeout: 3600,
+      timeout: 0,
       lock_when_sleeps: false
     )
     match(

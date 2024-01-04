@@ -42,7 +42,7 @@ dev_dependencies:
   ffigen: ^8.0.2
   flutter_driver:
     sdk: flutter
-  flutter_lints: ^2.0.1
+  flutter_lints:
   flutter_test:
     sdk: flutter
   freezed: ^2.2.1

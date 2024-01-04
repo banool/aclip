@@ -17,7 +17,7 @@ import 'page_selector.dart';
 import 'transaction_result_widget.dart';
 
 class ListPage extends StatefulWidget {
-  const ListPage({Key? key}) : super(key: key);
+  const ListPage({super.key});
 
   @override
   State<ListPage> createState() => ListPageState();
@@ -103,7 +103,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
               heightFactor: 0.85, child: AddItemScreen(url: url));
         });
     // This shouldn't be necessary, see https://github.com/banool/aclip/issues/23.
-    await Future.delayed(Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 200));
     await listManager.pull();
     setState(() {
       currentAction = null;
@@ -143,15 +143,15 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                       AsyncSnapshot<FullTransactionResult> snapshot) {
                     if (snapshot.connectionState != ConnectionState.done) {
                       return Padding(
-                          padding: EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(20),
                           child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                CircularProgressIndicator(),
-                                Padding(padding: EdgeInsets.only(left: 15)),
+                                const CircularProgressIndicator(),
+                                const Padding(padding: EdgeInsets.only(left: 15)),
                                 Text(
                                   "${currentAction!} item...",
-                                  style: TextStyle(fontSize: 18),
+                                  style: const TextStyle(fontSize: 18),
                                 )
                               ]));
                     }
@@ -171,7 +171,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                                 .getBool(keyShowTransactionSuccessPage) ??
                             defaultShowTransactionSuccessPage)) {
                       Navigator.pop(context);
-                      return SizedBox(width: 1, height: 1);
+                      return const SizedBox(width: 1, height: 1);
                     }
                     return TransactionResultWidget(result);
                   }));
@@ -179,7 +179,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     FullTransactionResult result = await removeItemFuture!;
     if (result.committed) {
       final controller = Slidable.of(context);
-      controller!.dismiss(ResizeRequest(Duration(milliseconds: 100), () => {}));
+      controller!.dismiss(ResizeRequest(const Duration(milliseconds: 100), () => {}));
       await updateCurrentUrlInList(url);
     }
     return result;
@@ -199,7 +199,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
         alignment: Alignment.bottomRight,
         child: Container(
             color: Theme.of(context).scaffoldBackgroundColor,
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             child: Text(
               message,
               textAlign: TextAlign.right,
@@ -220,8 +220,8 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
               }
               return Container(
                   color: Theme.of(context).scaffoldBackgroundColor,
-                  padding: EdgeInsets.all(8),
-                  child: Text(
+                  padding: const EdgeInsets.all(8),
+                  child: const Text(
                     "Showing offline items only",
                     textAlign: TextAlign.right,
                   ));
@@ -233,7 +233,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     List<Widget> appBarActions = [
       IconButton(
           onPressed: () async => await initiateAddItemFlow(context),
-          icon: Icon(Icons.add))
+          icon: const Icon(Icons.add))
     ];
     Widget leadingAppBarAction = IconButton(
         onPressed: () {
@@ -270,7 +270,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     ]);
     return buildTopLevelScaffold(
       context,
-      Padding(padding: EdgeInsets.all(5), child: body),
+      Padding(padding: const EdgeInsets.all(5), child: body),
       title: showArchived ? "Archive" : "My List",
       appBarActions: appBarActions,
       leadingAppBarButton: leadingAppBarAction,
@@ -308,7 +308,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
         context.select<DownloadManager, DownloadManagerResult?>(
             (downloadManager) => downloadManager.urlToDownloadMetadata[url]);
 
-    Widget nothing = SizedBox(width: 10, height: 10);
+    Widget nothing = const SizedBox(width: 10, height: 10);
 
     Widget title = Text(url.trim());
     Widget downloadingIndicator;
@@ -316,7 +316,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
 
     if (downloadManagerResult == null) {
       var lac = AnimationController(
-          vsync: this, duration: Duration(milliseconds: 1000));
+          vsync: this, duration: const Duration(milliseconds: 1000));
       loadingAnimationControllers[url] = lac;
       lac.repeat(reverse: true);
       downloadingIndicator = Align(
@@ -342,7 +342,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
             loadingBuilder: (context, child, loadingProgress) =>
                 (loadingProgress == null)
                     ? FractionallySizedBox(widthFactor: 0.35, child: child)
-                    : CircularProgressIndicator(),
+                    : const CircularProgressIndicator(),
             errorBuilder: (BuildContext context, _, __) {
               return nothing;
             },
@@ -353,7 +353,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
       }
       downloadingIndicator = IconButton(
           padding: EdgeInsets.zero,
-          constraints: BoxConstraints(),
+          constraints: const BoxConstraints(),
           alignment: Alignment.center,
           icon: Icon(iconData, size: 20),
           onPressed: () async {
@@ -375,7 +375,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
     Widget subtitle = Row(
       children: [
         Text(subtitleSuffix),
-        Padding(padding: EdgeInsets.only(left: 5)),
+        const Padding(padding: EdgeInsets.only(left: 5)),
         downloadingIndicator
       ],
     );
@@ -387,7 +387,7 @@ class ListPageState extends State<ListPage> with TickerProviderStateMixin {
                 extentRatio: 0.5,
                 dragDismissible: false,
                 dismissible: DismissiblePane(onDismissed: () => {}),
-                motion: ScrollMotion(),
+                motion: const ScrollMotion(),
                 children: [
                   SlidableAction(
                     onPressed: (BuildContext context) async => await removeItem(

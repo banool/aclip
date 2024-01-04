@@ -1,6 +1,5 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:math';
 
 import 'package:aptos_sdk_dart/aptos_sdk_dart.dart';
@@ -137,9 +136,9 @@ class ListManager extends ChangeNotifier {
     return AptosClientHelper.fromDio(Dio(BaseOptions(
       baseUrl: fixNodeUrl(
           sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl),
-      connectTimeout: Duration(milliseconds: 8000),
-      receiveTimeout: Duration(milliseconds: 8000),
-      sendTimeout: Duration(milliseconds: 8000),
+      connectTimeout: const Duration(milliseconds: 8000),
+      receiveTimeout: const Duration(milliseconds: 8000),
+      sendTimeout: const Duration(milliseconds: 8000),
     )));
   }
 

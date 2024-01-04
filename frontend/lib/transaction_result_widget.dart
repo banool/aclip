@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 class TransactionResultWidget extends StatelessWidget {
   final FullTransactionResult transactionResult;
 
-  const TransactionResultWidget(this.transactionResult, {Key? key})
-      : super(key: key);
+  const TransactionResultWidget(this.transactionResult, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,25 +13,25 @@ class TransactionResultWidget extends StatelessWidget {
     List<Widget> textBodyChildren = [];
     if (transactionResult.transaction != null) {
       textBodyChildren += [
-        Text(
+        const Text(
           "Transaction",
           style: TextStyle(fontWeight: FontWeight.w500),
         ),
-        Divider(
+        const Divider(
           indent: 100,
           endIndent: 100,
         ),
         Text(transactionResult.transaction!.toString()),
-        Divider(height: 50),
-        Padding(
+        const Divider(height: 50),
+        const Padding(
           padding: EdgeInsets.only(top: 20),
         )
       ];
     }
     if (transactionResult.errorString != null) {
       textBodyChildren += [
-        Text("Error", style: TextStyle(fontWeight: FontWeight.w500)),
-        Divider(
+        const Text("Error", style: TextStyle(fontWeight: FontWeight.w500)),
+        const Divider(
           indent: 100,
           endIndent: 100,
         ),
@@ -40,21 +39,21 @@ class TransactionResultWidget extends StatelessWidget {
       ];
       if (transactionResult.failedAt != null) {
         textBodyChildren += [
-          Padding(padding: EdgeInsets.only(top: 20)),
+          const Padding(padding: EdgeInsets.only(top: 20)),
           Text("Failed at: ${transactionResult.failedAt}"),
         ];
       }
     }
     Widget body = Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             Text(
               resultsHeaderString,
               textAlign: TextAlign.left,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
             ),
-            Divider(height: 50),
+            const Divider(height: 50),
             Expanded(
                 child: SingleChildScrollView(
                     child: Column(
