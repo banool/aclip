@@ -65,7 +65,7 @@ class RegisterPageState extends State<RegisterPage> {
                 style: TextStyle(color: Colors.blue, fontSize: fontSize),
               ),
               onTap: () => launchUrl(Uri.parse(
-                  "https://aptos.dev/cli-tools/aptos-cli-tool/use-aptos-cli#initialize-local-configuration-and-create-an-account")),
+                  "https://aptos.dev/tools/aptos-cli/use-cli/cli-configuration/#initialize-local-configuration-and-create-an-account")),
             ),
           ],
         )));
