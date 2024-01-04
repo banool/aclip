@@ -14,7 +14,7 @@ import 'list_page_selector.dart';
 import 'settings_page.dart';
 
 class PageSelector extends StatefulWidget {
-  const PageSelector({Key? key}) : super(key: key);
+  const PageSelector({super.key});
 
   @override
   State<PageSelector> createState() => PageSelectorState();
@@ -22,7 +22,7 @@ class PageSelector extends StatefulWidget {
 
 class PageSelectorState extends State<PageSelector> {
   late PageSelectorController pageSelectorController;
-  ValueKey childKey = ValueKey(0);
+  ValueKey childKey = const ValueKey(0);
 
   // ignore: unused_field
   late StreamSubscription _intentDataStreamSubscription;
@@ -30,7 +30,7 @@ class PageSelectorState extends State<PageSelector> {
   Future<void> handleShareUrl(Uri value) async {
     if (!listManagerSet) {
       await myShowDialog(
-          context, Text("You must setup aclip before adding links."),
+          context, const Text("You must setup aclip before adding links."),
           title: "Setup incomplete");
       return;
     }
@@ -119,17 +119,17 @@ class PageSelectorController {
 
   final List<TabInformation> tabs = [
     TabInformation(
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.list_alt),
           label: "List",
         ),
-        ListPageSelector()),
+        const ListPageSelector()),
     TabInformation(
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.settings),
           label: "Settings",
         ),
-        SettingsPage()),
+        const SettingsPage()),
   ];
 
   List<BottomNavigationBarItem> getBottomNavBarItems() {
@@ -164,7 +164,7 @@ Scaffold buildTopLevelScaffold(
       leading: leadingAppBarButton,
       title: Text(
         title,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
       ),
       toolbarHeight: 50,
       centerTitle: true,

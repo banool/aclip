@@ -11,7 +11,7 @@ const double fontSizeLarge = 24;
 const double fontSize = 17;
 
 class InitializePage extends StatefulWidget {
-  const InitializePage({Key? key, required this.error}) : super(key: key);
+  const InitializePage({super.key, required this.error});
 
   final Object error;
 
@@ -27,7 +27,7 @@ class InitializePageState extends State<InitializePage> {
     if (result.committed) {
       try {
         await listManager.triggerPull();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Successfully initialized list!"),
         ));
         Provider.of<PageSelectorController>(context, listen: false)
@@ -60,7 +60,7 @@ class InitializePageState extends State<InitializePage> {
     if (onPressedFuture == null) {
       lower = ElevatedButton(
           onPressed: triggerInitializeList,
-          child: Text(
+          child: const Text(
             "Initialize list",
             style: TextStyle(fontSize: fontSize),
           ));
@@ -68,8 +68,8 @@ class InitializePageState extends State<InitializePage> {
       lower = FutureBuilder(
           future: onPressedFuture,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
-            return Row(
-              children: const [
+            return const Row(
+              children: [
                 CircularProgressIndicator(),
                 Padding(padding: EdgeInsets.only(left: 20)),
                 Text(
@@ -81,17 +81,17 @@ class InitializePageState extends State<InitializePage> {
           });
     }
     Widget body = Padding(
-        padding: EdgeInsets.all(30),
+        padding: const EdgeInsets.all(30),
         child: getScrollableColumn(Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "Initialize your list",
               style: TextStyle(
                   fontSize: fontSizeLarge, fontWeight: FontWeight.w700),
             ),
-            Padding(padding: EdgeInsets.only(top: 25)),
-            Text(
+            const Padding(padding: EdgeInsets.only(top: 25)),
+            const Text(
               "Before using aclip, you must initialize a list on your account. "
               "Creating your list, as well as adding and removing items from it, "
               "will cost gas. The Aptos network isn't like other blockchains, "
@@ -100,31 +100,31 @@ class InitializePageState extends State<InitializePage> {
               "of your own data.",
               style: TextStyle(fontSize: fontSize),
             ),
-            Padding(padding: EdgeInsets.only(top: 30)),
+            const Padding(padding: EdgeInsets.only(top: 30)),
             lower,
-            Padding(padding: EdgeInsets.only(top: 30)),
-            Text(
+            const Padding(padding: EdgeInsets.only(top: 30)),
+            const Text(
               "I have already initialized a list:",
               style: TextStyle(
                 fontSize: fontSize - 2,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            Padding(padding: EdgeInsets.only(top: 20)),
-            Text(
+            const Padding(padding: EdgeInsets.only(top: 20)),
+            const Text(
               "If you're confident you have already initialized a list, this "
               "indicates a bug in the app. See the error here from checking "
               "whether you already have a list and getting its content.",
               style: TextStyle(fontSize: fontSize - 3),
             ),
-            Padding(padding: EdgeInsets.only(top: 20)),
+            const Padding(padding: EdgeInsets.only(top: 20)),
             ElevatedButton(
                 onPressed: () async =>
                     await showErrorInDialog(context, widget.error),
                 style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(
-                        Color.fromARGB(255, 181, 29, 29))),
-                child: Text(
+                        const Color.fromARGB(255, 181, 29, 29))),
+                child: const Text(
                   "See error",
                   style: TextStyle(fontSize: fontSize - 2),
                 ))

@@ -140,28 +140,28 @@ void main() async {
 
     await setup(pull: false);
 
-    await tester.pumpWidget(MyApp());
-    await tester.pumpAndSettle(Duration(seconds: 2));
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle(const Duration(seconds: 2));
 
     var screenshotNameInfo = await ScreenshotNameInfo.buildScreenshotNameInfo();
 
     await takeScreenshot(tester, binding, screenshotNameInfo, "loginPage");
 
     final Finder enterPrviateKeyButton =
-        find.byKey(ValueKey("enterPrivateKeyButton"));
+        find.byKey(const ValueKey("enterPrivateKeyButton"));
     await tester.tap(enterPrviateKeyButton);
     await tester.pumpAndSettle();
 
-    final Finder enterPrivateKeyField = find.byKey(ValueKey("myTextField"));
+    final Finder enterPrivateKeyField = find.byKey(const ValueKey("myTextField"));
     await tester.tap(enterPrivateKeyField);
     await tester.pumpAndSettle();
     await tester.enterText(enterPrivateKeyField,
         "0x257e96d2d763967d72d34d90502625c2d9644401aa409fa3f5e9d6cc59095f9b");
     await tester.pumpAndSettle();
-    final Finder continueButton = find.byKey(ValueKey("continueButton"));
+    final Finder continueButton = find.byKey(const ValueKey("continueButton"));
     await tester.tap(continueButton);
 
-    await tester.pumpAndSettle(Duration(seconds: 5));
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
     await takeScreenshot(tester, binding, screenshotNameInfo, "listPage");
 

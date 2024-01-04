@@ -9,7 +9,7 @@ import 'transaction_result_widget.dart';
 import 'globals.dart';
 
 class AddItemScreen extends StatefulWidget {
-  const AddItemScreen({this.url, Key? key}) : super(key: key);
+  const AddItemScreen({this.url, super.key});
 
   // If this is given, we will autopopulate the link field and initiate the
   // flow to add the item to the list on the backend.
@@ -68,7 +68,7 @@ class AddItemScreenState extends State<AddItemScreen> {
               textController.text = "";
             });
           },
-          icon: Icon(Icons.clear),
+          icon: const Icon(Icons.clear),
         ),
       ),
       validator: (value) {
@@ -93,23 +93,23 @@ class AddItemScreenState extends State<AddItemScreen> {
                 textController.text = url;
               });
             },
-            icon: Icon(Icons.link))
+            icon: const Icon(Icons.link))
         : Container();
     return Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Form(
             key: _formKey,
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Text("Enter URL:"),
-                Spacer(),
+                const Text("Enter URL:"),
+                const Spacer(),
                 fromUrlBarWidget,
                 IconButton(
-                    onPressed: setTextFromClipboard, icon: Icon(Icons.paste))
+                    onPressed: setTextFromClipboard, icon: const Icon(Icons.paste))
               ]),
               textField,
-              Padding(padding: EdgeInsets.only(top: 20)),
+              const Padding(padding: EdgeInsets.only(top: 20)),
               Row(
                 children: [
                   ElevatedButton(
@@ -120,11 +120,11 @@ class AddItemScreenState extends State<AddItemScreen> {
                     },
                     child: const Text("Add"),
                   ),
-                  Spacer(flex: 2),
+                  const Spacer(flex: 2),
                   Expanded(
                       flex: 3,
                       child: CheckboxListTile(
-                          title: Text("Encrypt this item?"),
+                          title: const Text("Encrypt this item?"),
                           value: makeEncrypted,
                           controlAffinity: ListTileControlAffinity.leading,
                           onChanged: (bool? value) async {
@@ -156,11 +156,11 @@ Widget buildAddItemView(Future addItemFuture) {
       future: addItemFuture,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return Padding(
+          return const Padding(
               padding: EdgeInsets.all(20),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     CircularProgressIndicator(),
                     Padding(padding: EdgeInsets.only(left: 15)),
                     Text(
@@ -180,7 +180,7 @@ Widget buildAddItemView(Future addItemFuture) {
             !(sharedPreferences.getBool(keyShowTransactionSuccessPage) ??
                 defaultShowTransactionSuccessPage)) {
           Navigator.pop(context);
-          return SizedBox(width: 1, height: 1);
+          return const SizedBox(width: 1, height: 1);
         }
         return TransactionResultWidget(result);
       });

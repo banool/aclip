@@ -136,9 +136,9 @@ class ListManager extends ChangeNotifier {
     return AptosClientHelper.fromDio(Dio(BaseOptions(
       baseUrl: fixNodeUrl(
           sharedPreferences.getString(keyAptosNodeUrl) ?? defaultAptosNodeUrl),
-      connectTimeout: Duration(milliseconds: 8000),
-      receiveTimeout: Duration(milliseconds: 8000),
-      sendTimeout: Duration(milliseconds: 8000),
+      connectTimeout: const Duration(milliseconds: 8000),
+      receiveTimeout: const Duration(milliseconds: 8000),
+      sendTimeout: const Duration(milliseconds: 8000),
     )));
   }
 

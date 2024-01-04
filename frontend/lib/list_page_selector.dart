@@ -11,7 +11,7 @@ import 'page_selector.dart';
 import 'register_page.dart';
 
 class ListPageSelector extends StatefulWidget {
-  const ListPageSelector({Key? key}) : super(key: key);
+  const ListPageSelector({super.key});
 
   @override
   State<ListPageSelector> createState() => ListPageSelectorState();
@@ -22,14 +22,14 @@ class ListPageSelectorState extends State<ListPageSelector> {
   Widget build(BuildContext context) {
     HexString? privateKey = getPrivateKey();
     if (privateKey == null) {
-      return RegisterPage();
+      return const RegisterPage();
     } else {
       return Consumer(builder: ((context, FetchDataDummy? dummy, _) {
         print("Building consumer arm of ListPageSelector");
         // Future not complete yet.
         if (dummy == null) {
           return buildTopLevelScaffold(
-              context, Center(child: CircularProgressIndicator()),
+              context, const Center(child: CircularProgressIndicator()),
               title: "Loading");
         }
 
@@ -43,7 +43,7 @@ class ListPageSelectorState extends State<ListPageSelector> {
           return InitializePage(error: Error());
         }
 
-        return ListPage();
+        return const ListPage();
       }));
     }
   }

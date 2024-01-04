@@ -6,8 +6,7 @@ import 'download_manager.dart';
 import 'page_selector.dart';
 
 class InAppWebView extends StatefulWidget {
-  const InAppWebView(this.url, {Key? key, this.viewOffline = false})
-      : super(key: key);
+  const InAppWebView(this.url, {super.key, this.viewOffline = false});
 
   final String url;
   final bool viewOffline;
@@ -64,8 +63,7 @@ class ColoredSafeArea extends StatelessWidget {
   final Widget child;
   final Color? color;
 
-  const ColoredSafeArea({Key? key, required this.child, this.color})
-      : super(key: key);
+  const ColoredSafeArea({super.key, required this.child, this.color});
 
   @override
   Widget build(BuildContext context) {
