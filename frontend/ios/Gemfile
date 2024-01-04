@@ -1,0 +1,4 @@
+source "https://rubygems.org"
+
+# Temporary: https://github.com/fastlane/fastlane/issues/21762
+gem "fastlane", '~> 2.217.0'
